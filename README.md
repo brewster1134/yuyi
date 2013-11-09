@@ -54,7 +54,7 @@ _OPTIONAL_
 class MyRoll < Yuyi::Roll
   title 'My Custom Roll'
   dependencies [
-    :ruby
+    :homebrew
   ]
 
   def install

@@ -1,0 +1,6 @@
+#!/usr/bin/env ruby
+require 'pathname'
+$: << File.expand_path('../../lib', __FILE__)
+require 'yuyi'
+
+Yuyi.start ARGV

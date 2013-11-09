@@ -1,7 +1,7 @@
 class HomebrewCask < Yuyi::Roll
   title 'Homebrew Cask'
   dependencies [
-    'homebrew'
+    :homebrew
   ]
 
   def install

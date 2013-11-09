@@ -10,7 +10,7 @@ class Yuyi::Roll
   def title; self.class.title; end
 
   def self.dependencies dependencies = []
-    @dependencies ||= dependencies
+    @dependencies ||= dependencies.map(&:to_s)
   end
   def dependencies; self.class.dependencies; end
 

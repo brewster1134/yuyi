@@ -6,6 +6,7 @@
 # See http://rubydoc.info/gems/rspec-core/RSpec/Core/Configuration
 $: << File.expand_path('../../lib', __FILE__)
 $: << File.expand_path('../../rolls', __FILE__)
+$: << File.expand_path('../fixtures', __FILE__)
 
 require 'yuyi'
 
@@ -23,15 +24,28 @@ RSpec.configure do |config|
   # the seed, which is printed after each run.
   #     --seed 1234
   config.order = 'random'
+
+  config.before do
+    Yuyi.stub(:say)
+  end
 end
 
-# Reopen classes for methods for specs
-class Yuyi::Rolls
-  def self.all_on_menu; @@all_on_menu; end
+class Object
+  def class_var class_var, value = nil
+    if value
+      self.send(:class_variable_set, :"@@#{class_var}", value)
+    else
+      self.send(:class_variable_get, :"@@#{class_var}")
+    end
+  end
 end
 
-def require_rolls
+def require_all_rolls
   Dir.glob(File.join Yuyi::ROLLS_DIR, '*.rb').each do |roll|
     require File.basename(roll, '.rb')
   end
+end
+
+def stub_roll roll_class
+  roll_class.any_instance.stub(:install)
 end

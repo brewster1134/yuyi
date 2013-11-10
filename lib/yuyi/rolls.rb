@@ -14,17 +14,18 @@ private
   # require all rolls on the menu
   #
   def self.load_from_menu
-    self.load_menu.each do |roll, data|
-      begin
-        # Require roll (which will then add its class to the @all class var)
-        require roll
-      rescue LoadError
-        Yuyi.say "You ordered the '#{roll}' roll off the menu, but we are fresh out...", :type => :warn
-        Yuyi.say "Make sure `rolls/#{roll}.rb` exists, or remove it from your menu.", :type => :warn
-      end
-    end
+    menu = load_menu
+    menu.each{ |roll| require_roll roll }
+  end
 
-    return @@all_on_menu
+  def self.require_roll roll
+    begin
+      # Require roll (which will then add its class to the @all_on_menu class var)
+      require roll.to_s
+    rescue LoadError
+      Yuyi.say "You ordered the '#{roll}' roll off the menu, but we are fresh out...", :type => :warn
+      Yuyi.say "Make sure `rolls/#{roll}.rb` exists, or remove it from your menu.", :type => :warn
+    end
   end
 
   def self.load_menu
@@ -41,8 +42,8 @@ private
   def self.tsorted_rolls
     tsort_hash = {}
 
-    @@all_on_menu.each do |underscore, klass|
-      tsort_hash[underscore] = klass.dependencies
+    @@all_on_menu.each do |file_name, klass|
+      tsort_hash[file_name] = klass.dependencies
     end
 
     @@tsorted_rolls = tsort_hash.tsort

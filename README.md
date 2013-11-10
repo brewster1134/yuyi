@@ -19,7 +19,7 @@ If a roll accepts arguments, place a `:` at the end, and indent the `key: value`
 ```yaml
 - roll_name
 - roll_name_with_options:
-    stuff: pok
+    key: value
 ```
 
 ### Instructions
@@ -54,7 +54,7 @@ _OPTIONAL_
 class MyRoll < Yuyi::Roll
   title 'My Custom Roll'
   dependencies [
-    :ruby
+    :homebrew
   ]
 
   def install

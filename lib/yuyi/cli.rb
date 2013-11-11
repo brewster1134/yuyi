@@ -1,12 +1,27 @@
 module Yuyi::Cli
+  OPTIONS = {
+    :help => 'Shows these options.',
+    :list => 'List all rolls available to be included in your menu.',
+    :version => 'Shows the current version of Yuyi.'
+  }
+
   def start args
     command, *rest = *args
-    case command
-    when '-v'
-      version
-    else
-      header
-      Yuyi::Rolls.load
+
+    catch :found do
+      OPTIONS.keys.each do |option|
+        if command == "--#{option.to_s}" || command == "-#{option.to_s.chars.first.downcase}"
+          send(option)
+          throw :found
+        end
+      end
+      if command
+        say 'INVALID ARGUMENT', :type => :warn
+        send :help
+      else
+        header
+        Yuyi::Rolls.load
+      end
     end
   end
 
@@ -49,6 +64,34 @@ module Yuyi::Cli
   end
 
 private
+
+  # METHODS FOR FLAGS
+  #
+  def help
+    longest_option = OPTIONS.keys.map(&:to_s).max.length
+
+    say
+    OPTIONS.each do |option, description|
+      string = ''
+      string << "-#{option.to_s.chars.first.downcase}"
+      string << ', '
+      string << "--#{option.to_s.ljust(longest_option)}"
+      string << '   '
+      string << description
+      say string
+    end
+    say
+  end
+
+  def list
+    say
+    say 'Available Rolls', :type => :success
+    say '---------------', :type => :success
+    Dir.glob(File.join Yuyi::ROLLS_DIR, '*.rb').each do |roll|
+      say File.basename(roll, '.rb')
+    end
+    say
+  end
 
   def version
     say "#{Yuyi::NAME} #{Yuyi::VERSION}"

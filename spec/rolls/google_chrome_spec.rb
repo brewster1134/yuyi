@@ -7,8 +7,4 @@ describe GoogleChrome do
   before do
     stub_roll GoogleChrome
   end
-
-  it 'should return a name' do
-    expect(roll.title).to eq 'Google Chrome'
-  end
 end

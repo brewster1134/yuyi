@@ -9,5 +9,5 @@ require 'yuyi/rolls'
 
 class Yuyi
   extend Yuyi::Cli
-  include Config
+  include Yuyi::Config
 end

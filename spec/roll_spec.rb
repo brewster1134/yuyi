@@ -22,9 +22,12 @@ describe Yuyi::Roll do
       describe 'the instance' do
         let(:roll) { roll_class.new }
 
-        before :each do
+        before do
           # Prevent installs from actually running
           roll_class.any_instance.stub(:install).and_return(Proc.new {})
+        end
+
+        before :each do
           load "#{file_name}.rb"
         end
 
@@ -32,12 +35,16 @@ describe Yuyi::Roll do
           expect(roll.title).to be_an_instance_of String
         end
 
+        it 'should have dependencies' do
+          expect(roll.dependencies).to be_an_instance_of Array
+        end
+
         it 'should have an install block' do
           expect(roll.install).to be_an_instance_of Proc
         end
 
-        it 'should have dependencies' do
-          expect(roll.dependencies).to be_an_instance_of Array
+        it 'should have an installed? block' do
+          expect(roll.installed?).to be_a Boolean
         end
       end
     end

@@ -1,8 +1,8 @@
-module Config
+module Yuyi::Config
   NAME = 'Yuyi'
-  VERSION = '0.0.2'
+  VERSION = '0.0.3'
   ROOT_DIR = File.expand_path('../../..', __FILE__)
-  MENU_YAML = File.join ROOT_DIR, 'menu.yml'
+  DEFAULT_ROLL_PATH = '~/Documents/menu.yml'
   ROLLS_DIR = File.join ROOT_DIR, 'rolls'
 
   $: << ROLLS_DIR

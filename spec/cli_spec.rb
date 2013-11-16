@@ -22,6 +22,7 @@ describe Yuyi::Cli do
     context 'without arguments' do
       before do
         Yuyi::Rolls.stub(:load)
+        CliTest.stub(:get_menu)
         CliTest.start []
       end
 

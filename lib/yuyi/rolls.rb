@@ -1,5 +1,3 @@
-require 'yaml'
-
 class Yuyi::Rolls
   @@all_on_menu = {}
 
@@ -14,9 +12,11 @@ private
   # require all rolls on the menu
   #
   def self.load_from_menu
-    menu = load_menu
-    menu.each{ |roll| require_roll roll }
+    self.menu.each{ |roll| require_roll roll }
   end
+
+  def self.menu= menu; @@menu = menu; end
+  def self.menu; @@menu; end
 
   def self.require_roll roll
     begin
@@ -26,10 +26,6 @@ private
       Yuyi.say "You ordered the '#{roll}' roll off the menu, but we are fresh out...", :type => :warn
       Yuyi.say "Make sure `rolls/#{roll}.rb` exists, or remove it from your menu.", :type => :warn
     end
-  end
-
-  def self.load_menu
-    YAML.load File.open Yuyi::MENU_YAML
   end
 
   # Add rolls to hash in format of {under_score_name: ClassName}

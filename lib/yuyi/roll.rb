@@ -13,9 +13,7 @@ class Yuyi::Roll
   # Methods called when each roll is required
   # These act as meta data for the roll class
   #
-  def self.title title = nil
-    @title ||= title
-  end
+  def self.title title = nil; @title ||= title; end
   def title; self.class.title; end
 
   def self.dependencies dependencies = []
@@ -24,10 +22,13 @@ class Yuyi::Roll
   end
   def dependencies; self.class.dependencies; end
 
-  def self.install &install
-    @install ||= install
-  end
+  def self.install &install; @install ||= install; end
   def install; self.class.install; end
+
+  def self.installed? &installed
+    @installed ||= !!installed || !!Proc.new{ false }
+  end
+  def installed?; self.class.installed?; end
 
   # Run when roll is ordered
   #

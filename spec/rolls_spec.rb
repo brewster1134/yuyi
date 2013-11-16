@@ -21,7 +21,7 @@ describe Yuyi::Rolls do
 
     describe '#load_from_menu' do
       before do
-        rolls.stub(:load_menu).and_return(['test_roll'])
+        rolls.menu = ['test_roll']
         rolls.load_from_menu
       end
 
@@ -31,19 +31,6 @@ describe Yuyi::Rolls do
 
       it 'should add the dependent rolls to the class variable' do
         expect(rolls.class_var(:all_on_menu)['test_dependent_roll']).to eq(TestDependentRoll)
-      end
-    end
-
-    describe '#load_menu' do
-      let(:load_menu) { rolls.load_menu }
-
-      before do
-        menu = File.join(File.expand_path('..', __FILE__), 'fixtures', 'test_menu.yml')
-        stub_const 'Yuyi::MENU_YAML', menu
-      end
-
-      it 'should return a hash' do
-        expect(load_menu).to include 'foo'
       end
     end
 

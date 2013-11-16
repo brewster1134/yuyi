@@ -21,6 +21,10 @@ RSpec.configure do |config|
   end
 end
 
+module Boolean; end
+class TrueClass; include Boolean; end
+class FalseClass; include Boolean; end
+
 class Object
   def class_var class_var, value = nil
     if value

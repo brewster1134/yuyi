@@ -67,7 +67,5 @@ end
 [.](http://www.comedycentral.com/video-clips/3myds9/upright-citizens-brigade-sushi-chef)
 
 ##### TODO
-* Ask user for menu.yml location
 * Install script interacts with /bin/fire arguments
-* Roll specific optional `is_installed` method
 * Roll specific optional `uninstall` method

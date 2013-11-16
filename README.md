@@ -23,13 +23,15 @@ If a roll accepts arguments, place a `:` at the end, and indent the `key: value`
 ```
 
 ### Instructions
-Run the binary
+Run the following from your shell
 
-`./bin/fire`
+`ruby -e "$(curl -fsSL https://raw.github.com/brewster1134/Yuyi/master/bin/install)"`
 
-##### Arguments
+Or if you are developing with a local copy, just run Yuyi directly
 
-* `-v` Version
+`.bin/fire`
+
+`.bin/fire -h` to see all available arguments
 
 ### Development
 To contribute to Yuyi...
@@ -63,3 +65,9 @@ end
 ```
 
 [.](http://www.comedycentral.com/video-clips/3myds9/upright-citizens-brigade-sushi-chef)
+
+##### TODO
+* Ask user for menu.yml location
+* Install script interacts with /bin/fire arguments
+* Roll specific optional `is_installed` method
+* Roll specific optional `uninstall` method

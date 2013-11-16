@@ -5,12 +5,6 @@ require_all_rolls
 describe Yuyi::Roll do
   Yuyi::Rolls.class_var(:all_on_menu).each do |file_name, roll_class|
     describe roll_class do
-      let(:roll) { roll_class.new }
-
-      before do
-        roll_class.any_instance.stub(:install).and_return(Proc.new {})
-      end
-
       describe 'the class' do
         after :each do
           load "#{file_name}.rb"
@@ -26,7 +20,11 @@ describe Yuyi::Roll do
       end
 
       describe 'the instance' do
+        let(:roll) { roll_class.new }
+
         before :each do
+          # Prevent installs from actually running
+          roll_class.any_instance.stub(:install).and_return(Proc.new {})
           load "#{file_name}.rb"
         end
 

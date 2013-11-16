@@ -1,0 +1,64 @@
+#!/usr/bin/env ruby
+
+# THIS CODE INSPIRED BY (COPIED FROM) HOMEBREW'S INSTALL SCRIPT. THANKS! :)
+
+# Create the directory to download to and install from
+def install_dir
+  @install_dir ||= unless @install_dir
+    `[ -d Yuyi ] || /bin/mkdir #{ENV['TMPDIR']}Yuyi`
+    "#{ENV['TMPDIR']}Yuyi"
+  end
+end
+
+# Check if git already exists
+def git
+  @git ||= if ENV['GIT'] and File.executable? ENV['GIT']
+    ENV['GIT']
+  elsif Kernel.system '/usr/bin/which -s git'
+    'git'
+  else
+    s = `xcrun -find git 2>/dev/null`.chomp
+    s if $? and not s.empty?
+  end
+
+  return unless @git
+  # Github only supports HTTPS fetches on 1.7.10 or later:
+  # https://help.github.com/articles/https-cloning-errors
+  `#{@git} --version` =~ /git version (\d\.\d+\.\d+)/
+  return if $1.nil? or $1 < "1.7.10"
+
+  @git
+end
+
+# Get OSX minor version
+def macos_version
+  @macos_version ||= `/usr/bin/sw_vers -productVersion`.chomp[/10\.\d+/]
+end
+
+# Pull down the repo with git or curl
+Dir.chdir install_dir do
+  if git
+    # we do it in four steps to avoid merge errors when reinstalling
+    `git init -q`
+    `git remote add origin https://github.com/brewster1134/Yuyi.git`
+
+    args = git, "fetch", "origin", "master:refs/remotes/origin/master", "-n"
+    args << '--depth=1' if ARGV.include? '--fast'
+    system *args
+
+    `git reset --hard origin/master`
+  else
+    # -m to stop tar erroring out if it can't modify the mtime for root owned directories
+    # pipefail to cause the exit status from curl to propogate if it fails
+    # we use -k for curl because Leopard has a bunch of bad SSL certificates
+    curl_flags = 'fsSL'
+    curl_flags << 'k' if macos_version <= '10.5'
+    `/bin/bash -o pipefail -c '/usr/bin/curl -#{curl_flags} https://github.com/brewster1134/Yuyi/tarball/master | /usr/bin/tar xz -m --strip 1'`
+  end
+end
+
+# RUN
+`#{install_dir}/bin/fire`
+
+# CLEANUP
+`rm -rf #{install_dir}`

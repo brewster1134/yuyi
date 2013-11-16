@@ -4,7 +4,7 @@ class HomebrewCask < Yuyi::Roll
     :homebrew
   ]
 
-  def install
+  install do
     `brew tap phinze/homebrew-cask`
     `brew install brew-cask`
   end

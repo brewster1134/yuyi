@@ -3,8 +3,7 @@ class GoogleChrome < Yuyi::Roll
   dependencies [
     :homebrew_cask
   ]
-
-  def install
+  install do
     `brew cask install google-chrome`
   end
 end

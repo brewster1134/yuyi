@@ -45,7 +45,7 @@ Each roll represents a single addition to be installed.
 _REQUIRED_
 * `< Yuyu::Roll`  The roll class needs to inherit from Yuyi::Roll
 * `title`         A nice friendly title for what is to be installed
-* `install`       A method that runs whatever is needed
+* `install`       A block with your installation isntructions
 
 _OPTIONAL_
 * `dependencies`  An array of other roll file names
@@ -56,8 +56,7 @@ class MyRoll < Yuyi::Roll
   dependencies [
     :homebrew
   ]
-
-  def install
+  install do
     `brew install my_roll`
   end
 end

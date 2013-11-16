@@ -24,11 +24,16 @@ class Yuyi::Roll
   end
   def dependencies; self.class.dependencies; end
 
+  def self.install &install
+    @install ||= install
+  end
+  def install; self.class.install; end
+
   # Run when roll is ordered
   #
   def initialize
     Yuyi.say
     Yuyi.say "-= Installing #{self.title}...", :color => 32
-    self.install
+    self.install.call()
   end
 end

@@ -7,14 +7,12 @@ describe Yuyi::Rolls do
     describe '#load' do
       before do
         rolls.stub(:load_from_menu)
-        rolls.stub(:tsorted_rolls)
         rolls.stub(:order_rolls)
         rolls.load
       end
 
       it 'should call neccessary methods' do
         expect(rolls).to have_received :load_from_menu
-        expect(rolls).to have_received :tsorted_rolls
         expect(rolls).to have_received :order_rolls
       end
     end
@@ -61,11 +59,11 @@ describe Yuyi::Rolls do
           4 => TsortTest.new([])
         }
 
-        rolls.tsorted_rolls
+        @tsorted_rolls = rolls.tsorted_rolls
       end
 
-      it 'should set the @@tsorted_rolls class var' do
-        expect(rolls.class_var(:tsorted_rolls)).to eq [3, 2, 1, 4]
+      it 'should tsort the rolls' do
+        expect(@tsorted_rolls).to eq [3, 2, 1, 4]
       end
     end
 
@@ -73,8 +71,8 @@ describe Yuyi::Rolls do
       before do
         class OrderRoll; end
         OrderRoll.stub(:new)
+        subject.stub(:tsorted_rolls).and_return([:order_roll])
         rolls.class_var :all_on_menu, { :order_roll => OrderRoll}
-        rolls.class_var :tsorted_rolls, [ :order_roll ]
         rolls.order_rolls
       end
 

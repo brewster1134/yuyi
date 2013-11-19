@@ -2,29 +2,32 @@ class Yuyi::Rolls
   @@all_on_menu = {}
 
   def self.load
-    self.load_from_menu
-    self.tsorted_rolls
+    # Don't order rolls if there is a roll cannot be loaded
+    self.load_from_menu rescue return
     self.order_rolls
   end
 
 private
 
+  def self.menu= menu; @@menu = menu; end
+  def self.menu; @@menu; end
+
   # require all rolls on the menu
   #
   def self.load_from_menu
-    self.menu.each{ |roll| require_roll roll }
+    self.menu.each do |roll|
+      raise if require_roll(roll).nil?
+    end
   end
-
-  def self.menu= menu; @@menu = menu; end
-  def self.menu; @@menu; end
 
   def self.require_roll roll
     begin
       # Require roll (which will then add its class to the @all_on_menu class var)
       require roll.to_s
     rescue LoadError
-      Yuyi.say "You ordered the '#{roll}' roll off the menu, but we are fresh out...", :type => :warn
-      Yuyi.say "Make sure `rolls/#{roll}.rb` exists, or remove it from your menu.", :type => :warn
+      Yuyi.say
+      Yuyi.say "You ordered the '#{roll}' roll off the menu, but we are fresh out...", :type => :fail
+      Yuyi.say "Make sure `rolls/#{roll}.rb` exists, or remove it from your menu.", :type => :fail
     end
   end
 
@@ -42,11 +45,11 @@ private
       tsort_hash[file_name] = klass.dependencies
     end
 
-    @@tsorted_rolls = tsort_hash.tsort
+    tsort_hash.tsort
   end
 
   def self.order_rolls
-    @@tsorted_rolls.each do |roll|
+    self.tsorted_rolls.each do |roll|
       roll_class = @@all_on_menu[roll]
       roll_class.new
     end

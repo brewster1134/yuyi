@@ -34,13 +34,3 @@ class Object
     end
   end
 end
-
-def require_all_rolls
-  Dir.glob(File.join Yuyi::ROLLS_DIR, '*.rb').each do |roll|
-    require File.basename(roll, '.rb')
-  end
-end
-
-def stub_roll roll_class
-  roll_class.any_instance.stub(:install)
-end

@@ -2,6 +2,7 @@ require 'readline'
 require 'yaml'
 
 module Yuyi::Cli
+  Readline.completion_append_character = '/'
   OPTIONS = {
     :help => 'Shows these options.',
     :list => 'List all rolls available to be included in your menu.',

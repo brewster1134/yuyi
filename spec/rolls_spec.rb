@@ -80,5 +80,15 @@ describe Yuyi::Rolls do
         expect(OrderRoll).to have_received(:new)
       end
     end
+
+    describe '#on_the_menu?' do
+      before do
+        rolls.class_var(:all_on_menu, { 'roll' => 'Roll' })
+      end
+
+      it 'should return true if roll is on the menu' do
+        expect(rolls.on_the_menu?(:roll)).to be_true
+      end
+    end
   end
 end

@@ -2,7 +2,7 @@ class Yuyi::Roll
   # Add to global collection of rolls
   #
   def self.inherited roll_class
-    file_name = caller.first[/[a-z_]+?(?=.rb)/]
+    file_name = caller.first[/[a-z_]+?(?=\.rb)/]
     Yuyi::Rolls.add_roll file_name, roll_class
   end
 
@@ -22,19 +22,36 @@ class Yuyi::Roll
   end
   def dependencies; self.class.dependencies; end
 
-  def self.install &install; @install ||= install; end
+  def self.install &install
+    @install ||= install
+  end
   def install; self.class.install; end
 
   def self.installed? &installed
-    @installed ||= !!installed || !!Proc.new{ false }
+    @installed ||= yield rescue false
   end
-  def installed?; self.class.installed?; end
+  def installed?; !!self.class.installed? end
 
   # Run when roll is ordered
   #
   def initialize
     Yuyi.say
-    Yuyi.say "-= Installing #{self.title}...", :color => 32
-    self.install.call()
+    if self.installed?
+      Yuyi.say "-= #{self.title} already installed", :type => :warn
+    else
+      Yuyi.say "-= Installing #{self.title}...", :type => :success
+      self.install.call()
+    end
+  end
+
+  def write_to_file file, text
+    File.open(File.expand_path(file), File::WRONLY|File::CREAT|File::APPEND) do |file|
+      file.write text
+      file.write "\n"
+    end
+  end
+
+  def on_the_menu? roll
+    Yuyi::Rolls.on_the_menu? roll
   end
 end

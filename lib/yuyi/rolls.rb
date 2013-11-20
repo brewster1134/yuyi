@@ -54,4 +54,8 @@ private
       roll_class.new
     end
   end
+
+  def self.on_the_menu? roll
+    @@all_on_menu.keys.include? roll.to_s
+  end
 end

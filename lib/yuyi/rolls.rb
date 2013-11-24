@@ -15,7 +15,7 @@ private
   # require all rolls on the menu
   #
   def self.load_from_menu
-    self.menu.each do |roll|
+    self.menu.keys.each do |roll|
       raise if require_roll(roll).nil?
     end
   end
@@ -42,10 +42,10 @@ private
     tsort_hash = {}
 
     @@all_on_menu.each do |file_name, klass|
-      tsort_hash[file_name] = klass.dependencies
+      tsort_hash[file_name.to_s] = klass.dependencies.map(&:to_s)
     end
 
-    tsort_hash.tsort
+    tsort_hash.tsort.map(&:to_sym)
   end
 
   def self.order_rolls
@@ -56,6 +56,6 @@ private
   end
 
   def self.on_the_menu? roll
-    @@all_on_menu.keys.include? roll.to_s
+    @@all_on_menu.keys.include? roll
   end
 end

@@ -19,26 +19,26 @@ describe Yuyi::Rolls do
 
     describe '#load_from_menu' do
       before do
-        rolls.menu = ['test_roll']
+        rolls.menu = { :test_roll => nil }
         rolls.load_from_menu
       end
 
       it 'should add the roll to the class variable' do
-        expect(rolls.class_var(:all_on_menu)['test_roll']).to eq(TestRoll)
+        expect(rolls.class_var(:all_on_menu)[:test_roll]).to eq(TestRoll)
       end
 
       it 'should add the dependent rolls to the class variable' do
-        expect(rolls.class_var(:all_on_menu)['test_dependent_roll']).to eq(TestDependentRoll)
+        expect(rolls.class_var(:all_on_menu)[:test_dependent_roll]).to eq(TestDependentRoll)
       end
     end
 
     describe '#add_roll' do
       before do
-        rolls.add_roll 'foo', 'Foo'
+        rolls.add_roll :foo, 'Foo'
       end
 
       it 'should add the roll to the class var' do
-        expect(rolls.class_var(:all_on_menu)['foo']).to eq 'Foo'
+        expect(rolls.class_var(:all_on_menu)[:foo]).to eq 'Foo'
       end
     end
 
@@ -46,24 +46,24 @@ describe Yuyi::Rolls do
       before do
         # Needs a class with a dependencies method
         class TsortTest
+          attr_accessor :dependencies
           def initialize dependencies
             @dependencies = dependencies
           end
-          def dependencies; @dependencies; end
         end
 
         rolls.class_var :all_on_menu, {
-          1 => TsortTest.new([2, 3]),
-          2 => TsortTest.new([3]),
-          3 => TsortTest.new([]),
-          4 => TsortTest.new([])
+          :a => TsortTest.new([:b, :c]),
+          :b => TsortTest.new([:c]),
+          :c => TsortTest.new([]),
+          :d => TsortTest.new([])
         }
 
         @tsorted_rolls = rolls.tsorted_rolls
       end
 
       it 'should tsort the rolls' do
-        expect(@tsorted_rolls).to eq [3, 2, 1, 4]
+        expect(@tsorted_rolls).to eq [:c, :b, :a, :d]
       end
     end
 
@@ -83,7 +83,7 @@ describe Yuyi::Rolls do
 
     describe '#on_the_menu?' do
       before do
-        rolls.class_var(:all_on_menu, { 'roll' => 'Roll' })
+        rolls.class_var(:all_on_menu, { :roll => 'Roll' })
       end
 
       it 'should return true if roll is on the menu' do

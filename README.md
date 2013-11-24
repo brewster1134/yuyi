@@ -12,14 +12,14 @@ Well thats not entirely true... the dependencies are already available on OS X
 * Bash >= 3.2
 
 ### Customizing
-Yuyi looks for a `menu.yml` file at the root of the project.  Prefix each roll file name with a `-`.
+Yuyi looks for a `menu.yml` file at the root of the project.  Make sure to include a colon (:) at the end of each roll name.
 
-If a roll accepts arguments, place a `:` at the end, and indent the `key: value` below it.
+If a roll accepts arguments, indent the key/value pairs below the roll name.
 
 ```yaml
-- roll_name
-- roll_name_with_options:
-    key: value
+roll_name:
+roll_name_with_options:
+  foo: bar
 ```
 
 ### Instructions

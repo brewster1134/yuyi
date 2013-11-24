@@ -1,8 +1,11 @@
+require 'mkmf'
+
 class Yuyi::Roll
   # Add to global collection of rolls
   #
   def self.inherited roll_class
-    file_name = caller.first[/[a-z_]+?(?=\.rb)/]
+    file_name = caller.first[/[a-z_]+?(?=\.rb)/].to_sym
+    roll_class.file_name = file_name
     Yuyi::Rolls.add_roll file_name, roll_class
   end
 
@@ -16,42 +19,54 @@ class Yuyi::Roll
   def self.title title = nil; @title ||= title; end
   def title; self.class.title; end
 
+  def self.file_name= file_name; @file_name ||= file_name; end
+  def self.file_name; @file_name; end
+
   def self.dependencies dependencies = []
     add_dependencies dependencies
-    @dependencies ||= dependencies.map(&:to_s)
+    @dependencies ||= dependencies
   end
   def dependencies; self.class.dependencies; end
 
   def self.install &install
     @install ||= install
   end
-  def install; self.class.install; end
+  def install; instance_eval(&self.class.install); end
 
   def self.installed? &installed
-    @installed ||= yield rescue false
+    @installed ||= installed
   end
-  def installed?; !!self.class.installed? end
+  def installed?; !!instance_eval(&self.class.installed?); end
 
   # Run when roll is ordered
   #
   def initialize
     Yuyi.say
-    if self.installed?
+    if installed?
       Yuyi.say "-= #{self.title} already installed", :type => :warn
     else
       Yuyi.say "-= Installing #{self.title}...", :type => :success
-      self.install.call()
+      install
     end
   end
 
-  def write_to_file file, text
+  def write_to_file file, *text
     File.open(File.expand_path(file), File::WRONLY|File::CREAT|File::APPEND) do |file|
-      file.write text
+      file.write text * "\n"
       file.write "\n"
     end
   end
 
   def on_the_menu? roll
     Yuyi::Rolls.on_the_menu? roll
+  end
+
+  def options
+    Yuyi::Rolls.menu[self.class.file_name.to_s]
+  end
+
+  def command? command
+    `which #{command}`
+    $?.success?
   end
 end

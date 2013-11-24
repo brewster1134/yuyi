@@ -1,42 +1,50 @@
 require 'spec_helper'
 
 describe Yuyi::Roll do
-  context 'when testing the generic roll class' do
-    subject(:roll_class) { RollTestClass }
-    subject(:roll) { RollTestClass.new }
+  before do
+    class RollTestClass < Yuyi::Roll; end
+    RollTestClass.any_instance.stub(:install)
+    RollTestClass.any_instance.stub(:installed?).and_return(true)
+  end
 
-    before do
-      class RollTestClass < Yuyi::Roll; end
-      RollTestClass.any_instance.stub(:installed?).and_return(true)
+  let(:roll_class) { RollTestClass }
+  let(:roll) { RollTestClass.new }
+
+  context 'when testing a generic roll' do
+    describe 'class' do
+      it 'should set the file_name' do
+        expect(roll_class.file_name).to be_an_instance_of Symbol
+      end
+
+      it 'should add the roll' do
+        expect(Yuyi::Rolls.class_var(:all_on_menu)[:roll_spec]).to eq roll_class
+      end
     end
 
-    describe '#initialize' do
-      before do
-        roll_class.any_instance.stub(:install).and_return(Proc.new {})
-        roll_class.any_instance.stub(:installed?).and_return(true)
-      end
-
-      it 'should call #installed?' do
-        expect(roll).to have_received(:installed?)
-      end
-
-      context 'when roll is already installed' do
-        before do
-          roll_class.any_instance.stub(:installed?).and_return(true)
+    describe 'instance' do
+      describe '#initialize' do
+        after do
+          roll
         end
 
-        it 'should not call install' do
-          expect(roll).to_not receive(:install)
-        end
-      end
+        context 'when roll is already installed' do
+          before do
+            roll_class.any_instance.stub(:installed?).and_return(true)
+          end
 
-      context 'when roll is not already installed' do
-        before do
-          roll_class.any_instance.stub(:installed?).and_return(false)
+          it 'should not call install' do
+            expect_any_instance_of(roll_class).to_not receive(:install)
+          end
         end
 
-        it 'should call install' do
-          expect(roll).to have_received(:install)
+        context 'when roll is not already installed' do
+          before do
+            roll_class.any_instance.stub(:installed?).and_return(false)
+          end
+
+          it 'should call install' do
+            expect_any_instance_of(roll_class).to receive(:install)
+          end
         end
       end
     end
@@ -58,6 +66,11 @@ describe Yuyi::Roll do
         roll.write_to_file 'test', 'bar'
         expect(File.open('test').read).to eq "foo\nbar\n"
       end
+
+      it 'should accept multiple text arguments' do
+        roll.write_to_file 'test', 'array_one', 'array_two'
+        expect(File.open('test').read).to eq "foo\narray_one\narray_two\n"
+      end
     end
 
     describe '#on_the_menu?' do
@@ -70,28 +83,48 @@ describe Yuyi::Roll do
         expect(Yuyi::Rolls).to have_received(:on_the_menu?)
       end
     end
+
+    describe '#options' do
+      before do
+        roll_class.stub(:file_name).and_return('roll')
+        Yuyi::Rolls.stub(:menu).and_return({ 'roll' => { :foo => :bar }})
+      end
+
+      it 'should return options form the menu' do
+        expect(roll.options[:foo]).to eq :bar
+      end
+    end
+
+    describe '#command?' do
+      it 'should return true if command exists' do
+        expect(roll.command?('ruby')).to eq true
+        expect(roll.command?('rubyfoo')).to eq false
+      end
+    end
   end
 
   context 'when testing each individual roll' do
-    before do
-      Yuyi::Roll.stub(:installed?).and_return(true)
-    end
-
     Dir.glob(File.join Yuyi::ROLLS_DIR, '*.rb').each do |file_name|
-
       before do
         require file_name
       end
 
       describe File.basename(file_name, '.rb') do
-        subject(:roll_class){ Yuyi::Rolls.class_var(:all_on_menu)[File.basename(file_name, '.rb')] }
-        subject(:roll){ roll_class.new }
+        let(:roll_class) { Yuyi::Rolls.class_var(:all_on_menu)[File.basename(file_name, '.rb').to_sym] }
+        let(:roll){ roll_class.new }
+
+        before do
+          # prevent `already initialized constant` warnings during testing
+          roll_class.constants.each{ |c| roll_class.send(:remove_const, c) }
+        end
 
         describe 'the class' do
           after :each do
             load file_name
           end
 
+          # List each required roll method here...
+          #
           it 'should call the title method' do
             expect(Yuyi::Roll).to receive(:title)
           end
@@ -102,20 +135,32 @@ describe Yuyi::Roll do
         end
 
         describe 'the instance' do
+          before do
+            roll_class.stub(:title).and_return('Foo')
+            roll_class.stub(:dependencies).and_return([:foo])
+            roll_class.stub(:install).and_return(Proc.new{'foo'})
+            roll_class.stub(:installed?).and_return(Proc.new{true})
+            load file_name
+          end
+
           it 'should respond to #title' do
-            expect(roll.title).to be_an_instance_of String
+            expect(roll_class).to receive(:title)
+            expect(roll.title).to eq 'Foo'
           end
 
           it 'should respond to #dependencies' do
-            expect(roll.dependencies).to be_an_instance_of Array
+            expect(roll_class).to receive(:dependencies)
+            expect(roll.dependencies).to eq [:foo]
           end
 
           it 'should respond to #install' do
-            expect(roll.install).to be_an_instance_of Proc
+            expect(roll_class).to receive(:install)
+            expect(roll.install).to eq 'foo'
           end
 
           it 'should respond to #installed?' do
-            expect(roll.installed?).to be_a Boolean
+            expect(roll_class).to receive(:installed?)
+            expect(roll.installed?).to eq true
           end
         end
       end

@@ -2,10 +2,10 @@ class Homebrew < Yuyi::Roll
   title 'Homebrew'
 
   install do
-    `ruby -e "$(curl -fsSL https://raw.github.com/mxcl/homebrew/go)"`
+    `ruby -e "$(curl -fsSL https://raw.github.com/mxcl/homebrew/go/install)"`
   end
 
   installed? do
-    !`brew`.empty?
+    command? 'brew'
   end
 end

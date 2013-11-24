@@ -6,14 +6,20 @@ class Rbenv < Yuyi::Roll
   ]
 
   install do
+    # Remove RVM
+    `rvm implode` if command? 'rvm'
+
+    # Install
     `brew install rbenv ruby-build`
-    write_to_file '~/.bash_profile', 'eval "$(rbenv init -)"'
+
+    # Add initialization to shell
+    write_to_file '~/.bash_profile', "# #{title}", 'eval "$(rbenv init -)"'
     if on_the_menu? :zsh
-      write_to_file '~/.zshrc', 'eval "$(rbenv init -)"'
+      write_to_file '~/.zshrc', "# #{title}", 'eval "$(rbenv init -)"'
     end
   end
 
   installed? do
-    `brew list` =~ /rbenv/ && `brew list` =~ /ruby-build/
+    command?('rbenv') && `brew list` =~ /rbenv/ && `brew list` =~ /ruby-build/
   end
 end

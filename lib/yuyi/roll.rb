@@ -64,7 +64,15 @@ class Yuyi::Roll
   end
 
   def options
-    Yuyi::Menu.object[self.class.file_name.to_s]
+    # Get options from menu or return an empty object
+    options = Yuyi::Menu.object[self.class.file_name.to_s] || {}
+
+    # Convert keys to symbols
+    options.keys.each do |key|
+      options[key.to_sym] = options.delete(key)
+    end
+
+    options
   end
 
   def command? command

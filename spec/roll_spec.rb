@@ -46,6 +46,34 @@ describe Yuyi::Roll do
             expect_any_instance_of(RollTestClass).to receive(:install)
           end
         end
+
+        context 'with no options' do
+          before do
+            Yuyi::Menu.stub(:object).and_return({'roll_spec' => nil})
+          end
+
+          after do
+            Yuyi::Menu.unstub(:object)
+          end
+
+          it 'should have an empty hash of options' do
+            expect(roll.options).to eq({})
+          end
+        end
+
+        context 'with options' do
+          before do
+            Yuyi::Menu.stub(:object).and_return({'roll_spec'=>{'foo'=>'bar'}})
+          end
+
+          after do
+            Yuyi::Menu.unstub(:object)
+          end
+
+          it 'should have symbols for keys' do
+            expect(roll.options[:foo]).to eq 'bar'
+          end
+        end
       end
     end
 

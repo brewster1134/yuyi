@@ -1,5 +1,3 @@
-require 'mkmf'
-
 class Yuyi::Roll
   # Add to global collection of rolls
   #
@@ -45,13 +43,13 @@ class Yuyi::Roll
   # Run when roll is ordered
   #
   def initialize
-    Yuyi.say
     if installed?
       Yuyi.say "-= #{self.title} already installed", :type => :warn
     else
       Yuyi.say "-= Installing #{self.title}...", :type => :success
       install
     end
+    Yuyi.say
   end
 
   def write_to_file file, *text
@@ -66,7 +64,7 @@ class Yuyi::Roll
   end
 
   def options
-    Yuyi::Rolls.menu[self.class.file_name.to_s]
+    Yuyi::Menu.object[self.class.file_name.to_s]
   end
 
   def command? command

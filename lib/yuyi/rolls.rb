@@ -4,7 +4,7 @@ class Yuyi::Rolls
   # Being the process of loading and installing rolls
   #
   def self.load
-    # Don't order rolls if there is a roll cannot be loaded
+    # Don't continue if there is a roll that cannot be loaded
     self.load_from_menu rescue return
     self.load_dependencies
     self.present_options
@@ -13,13 +13,10 @@ class Yuyi::Rolls
 
 private
 
-  def self.menu= menu; @@menu = menu; end
-  def self.menu; @@menu; end
-
   # Require all rolls on the menu
   #
   def self.load_from_menu
-    self.menu.keys.each do |roll|
+    Yuyi::Menu.object.keys.each do |roll|
       raise if require_roll(roll).nil?
     end
   end
@@ -33,7 +30,9 @@ private
       end
     end
     return unless options
-    Yuyi.ask('Hit enter when the options are set correctly in your menu', :type => :success) {}
+    Yuyi.ask('Hit enter when the options are set correctly in your menu', :type => :success) do
+      Yuyi::Menu.new Yuyi::Menu.path
+    end
   end
 
   # Require all the dependencies of all the rolls added from the menu

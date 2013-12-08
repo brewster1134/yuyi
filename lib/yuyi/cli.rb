@@ -23,7 +23,11 @@ module Yuyi::Cli
       # This checks for the full name or the first letter, proceeded by '--' or '-' respectively
       OPTIONS.keys.each do |option|
         if command == "--#{option.to_s}" || command == "-#{option.to_s.chars.first.downcase}"
-          send(option)
+          if rest.empty?
+            send(option)
+          else
+            send(option, rest)
+          end
           throw :found
         end
       end
@@ -152,21 +156,13 @@ private
   # Ask the user for a menu file to load
   #
   def get_menu
-    until menu = load_menu(menu)
+    menu = nil
+    until menu
       say 'Navigate to the menu you want to order from...', :type => :success
       menu = ask '...or just press enter to look for `menu.yml` in your Documents folder.', :readline => true, :color => 36 do |path|
-        path.empty? ? Yuyi::DEFAULT_ROLL_PATH : path
+        Yuyi::Menu.new(path.empty? ? Yuyi::DEFAULT_ROLL_PATH : path).class.object
       end
     end
-    Yuyi::Rolls.menu = menu
-  end
-
-  # Load the menu into a ruby object
-  #
-  def load_menu menu
-    YAML.load(File.open(File.expand_path(menu)))
-  rescue
-    return false
   end
 
   # METHODS FOR FLAGS

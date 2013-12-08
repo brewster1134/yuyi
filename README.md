@@ -1,71 +1,74 @@
 # Yuyi
 Opinionated automation for setting up a new machine.
 
-### Support
+###### Support
 * Mac OS X
 
-### Dependencies
-Nothing!
-
-Well thats not entirely true... the dependencies are already available on OS X
+###### Dependencies
+Nothing! Well thats not entirely true... the dependencies are already available by default on OS X
 * Ruby >= 1.8.7
 * Bash >= 3.2
 
-### Customizing
-Yuyi looks for a `menu.yml` file at the root of the project.  Make sure to include a colon (:) at the end of each roll name.
+#### Quick Usage
+* Create a `menu.yml` file in your Documents folder _(see below for examples)_
+* Run `ruby -e "$(curl -fsSL https://raw.github.com/brewster1134/Yuyi/master/bin/install)"` in Terminal
 
-If a roll accepts arguments, indent the key/value pairs below the roll name.
+#### Example Menu
 
 ```yaml
-roll_name:
-roll_name_with_options:
-  foo: bar
+google_chrome:
+ruby:
+  versions: ['2.0.0-p353']
 ```
 
-### Instructions
-Run the following from your shell
+Make sure to include a colon (:) at the end of each roll name.
 
-`ruby -e "$(curl -fsSL https://raw.github.com/brewster1134/Yuyi/master/bin/install)"`
-
-Or if you are developing with a local copy, just run Yuyi directly
-
-`.bin/fire`
-
-`.bin/fire -h` to see all available arguments
+If a roll accepts arguments, indent the key/value pairs below the roll name.  You will be prompted with roll options when Yuyi runs, and the opportunity to change them before anything is installed.
 
 ### Development
-To contribute to Yuyi...
 
-* Fork the repo
-* Run `bundle install`
-* Run `bundle exec rspec` to run the tests
-* Issue a pull request
+##### Dependencies
+* rspec
 
-##### Rolls
-Each roll represents a single addition to be installed.
-
-_REQUIRED_
+##### Writing Rolls
+REQUIRED
 * `< Yuyu::Roll`  The roll class needs to inherit from Yuyi::Roll
 * `title`         A nice friendly title for what is to be installed
 * `install`       A block with your installation isntructions
 
-_OPTIONAL_
-* `dependencies`  An array of other roll file names
+OPTIONAL
+* `dependencies`      An array of other roll names that your roll depends on
+* `isntalled?`        A block that tests if your roll is already installed or not (must return nil or false)
+* `available_options` A hash of options (and a nested hash of option meta data _* see example below *_)
 
 ```ruby
 class MyRoll < Yuyi::Roll
   title 'My Custom Roll'
+
   dependencies [
     :homebrew
   ]
+
+  available_options(
+    :version => {
+      :description => 'The specific version you would like to install',
+      :example => '1.0', # optional
+      :default => '2.0' # optional
+    }
+  )
+
   install do
     `brew install my_roll`
+  end
+
+  installed? do
+    `brew list` =~ /myroll/
   end
 end
 ```
 
-[.](http://www.comedycentral.com/video-clips/3myds9/upright-citizens-brigade-sushi-chef)
-
-##### TODO
+### TODO
 * Install script interacts with /bin/fire arguments
 * Roll specific optional `uninstall` method
+
+[.](http://www.comedycentral.com/video-clips/3myds9/upright-citizens-brigade-sushi-chef)

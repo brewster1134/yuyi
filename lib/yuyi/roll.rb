@@ -9,11 +9,11 @@ class Yuyi::Roll
     Yuyi::Rolls.add_roll file_name, roll_class
   end
 
-  def self.add_dependencies dependencies
+  def self.add_dependencies
     dependencies.each{ |roll| Yuyi::Rolls.require_roll roll }
   end
 
-  # Methods called when each roll is required
+  # DSL Methods called when each roll is required
   # These act as meta data for the roll class
   #
   def self.title title = nil; @title ||= title; end
@@ -23,7 +23,6 @@ class Yuyi::Roll
   def self.file_name; @file_name; end
 
   def self.dependencies dependencies = []
-    add_dependencies dependencies
     @dependencies ||= dependencies
   end
   def dependencies; self.class.dependencies; end
@@ -37,6 +36,11 @@ class Yuyi::Roll
     @installed ||= installed
   end
   def installed?; !!instance_eval(&self.class.installed?); end
+
+  def self.available_options available_options = {}
+    @available_options ||= available_options
+  end
+  def available_options; self.class.available_options; end
 
   # Run when roll is ordered
   #

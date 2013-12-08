@@ -140,6 +140,7 @@ describe Yuyi::Roll do
             roll_class.stub(:dependencies).and_return([:foo])
             roll_class.stub(:install).and_return(Proc.new{'foo'})
             roll_class.stub(:installed?).and_return(Proc.new{true})
+            roll_class.stub(:available_options).and_return({ :foo => 'bar' })
             load file_name
           end
 
@@ -161,6 +162,11 @@ describe Yuyi::Roll do
           it 'should respond to #installed?' do
             expect(roll_class).to receive(:installed?)
             expect(roll.installed?).to eq true
+          end
+
+          it 'should respond to #available_options' do
+            expect(roll_class).to receive(:available_options)
+            expect(roll.available_options).to eq({ :foo => 'bar' })
           end
         end
       end

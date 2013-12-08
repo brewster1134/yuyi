@@ -9,6 +9,14 @@ class Ruby < Yuyi::Roll
     :rbenv
   ]
 
+  available_options({
+    :versions => {
+      :description => 'An array of ruby versions you would like to install',
+      :example => [AVAIL_VERSIONS.last],
+      :default => AVAIL_VERSIONS.last
+    }
+  })
+
   install do
     # Collect versions from options and make sure they are available through rbenv
     versions = (options[:versions] || []).select{ |v| AVAIL_VERSIONS.include? v }

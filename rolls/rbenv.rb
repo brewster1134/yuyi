@@ -1,6 +1,4 @@
 class Rbenv < Yuyi::Roll
-  title 'rbenv'
-
   dependencies [
     :homebrew
   ]

@@ -1,13 +1,13 @@
-class Git < Yuyi::Roll
+class Node < Yuyi::Roll
   dependencies [
     :homebrew
   ]
 
   install do
-    `brew install git`
+    `brew install node`
   end
 
   installed? do
-    `brew list` =~ /git/
+    `brew list` =~ /node/
   end
 end

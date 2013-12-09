@@ -2,29 +2,71 @@ require 'spec_helper'
 
 describe Yuyi::Roll do
   before do
-    class RollTestClass < Yuyi::Roll; end
-    RollTestClass.any_instance.stub(:install)
+    class RollTestClass < Yuyi::Roll
+      dependencies [
+        :foo
+      ]
+    end
     RollTestClass.any_instance.stub(:installed?).and_return(true)
   end
 
-  let(:roll_class) { RollTestClass }
-  let(:roll) { RollTestClass.new }
+  after do
+    RollTestClass.any_instance.unstub(:installed?)
+  end
 
   context 'when testing a generic roll' do
     describe 'class' do
-      it 'should set the file_name' do
-        expect(RollTestClass.file_name).to be_an_instance_of Symbol
+      it 'should return a title' do
+        expect(RollTestClass.title).to eq('Roll Test Class')
       end
 
       it 'should add the roll' do
-        expect(Yuyi::Rolls.class_var(:all_on_menu)[:roll_spec]).to eq RollTestClass
+        expect(Yuyi::Menu.class_var(:classes)[:roll_spec]).to eq RollTestClass
+      end
+
+      context 'with no options' do
+        before do
+          Yuyi::Menu.stub(:object).and_return({ :roll_spec => nil })
+        end
+
+        after do
+          Yuyi::Menu.unstub(:object)
+        end
+
+        it 'should have an empty hash of options' do
+          expect(RollTestClass.options).to eq({})
+        end
+      end
+
+      context 'with options' do
+        before do
+          Yuyi::Menu.stub(:object).and_return({ :roll_spec => { :foo => 'bar' }})
+        end
+
+        after do
+          Yuyi::Menu.unstub(:object)
+        end
+
+        it 'should have return options' do
+          expect(RollTestClass.options).to eq({ :foo => 'bar' })
+        end
+
+        context 'when options change' do
+          before do
+            Yuyi::Menu.stub(:object).and_return({ :roll_spec => { :bar => 'foo' }})
+          end
+
+          it 'should return the new options from the menu' do
+            expect(RollTestClass.options).to eq({ :bar => 'foo' })
+          end
+        end
       end
     end
 
     describe 'instance' do
       describe '.initialize' do
         after do
-          roll
+          RollTestClass.new
         end
 
         context 'when roll is already installed' do
@@ -46,107 +88,17 @@ describe Yuyi::Roll do
             expect_any_instance_of(RollTestClass).to receive(:install)
           end
         end
-
-        context 'with no options' do
-          before do
-            Yuyi::Menu.stub(:object).and_return({'roll_spec' => nil})
-          end
-
-          after do
-            Yuyi::Menu.unstub(:object)
-          end
-
-          it 'should have an empty hash of options' do
-            expect(roll.options).to eq({})
-          end
-        end
-
-        context 'with options' do
-          before do
-            Yuyi::Menu.stub(:object).and_return({'roll_spec'=>{'foo'=>'bar'}})
-          end
-
-          after do
-            Yuyi::Menu.unstub(:object)
-          end
-
-          it 'should have symbols for keys' do
-            expect(roll.options[:foo]).to eq 'bar'
-          end
-        end
-      end
-    end
-
-    describe '.write_to_file' do
-      before do
-        roll.write_to_file 'test', 'foo'
-      end
-
-      after do
-        FileUtils.rm 'test'
-      end
-
-      it 'should create a file if it doesnt exist' do
-        expect(File.exists?('test')).to be_true
-      end
-
-      it 'should append to the file' do
-        roll.write_to_file 'test', 'bar'
-        expect(File.open('test').read).to eq "foo\nbar\n"
-      end
-
-      it 'should accept multiple text arguments' do
-        roll.write_to_file 'test', 'array_one', 'array_two'
-        expect(File.open('test').read).to eq "foo\narray_one\narray_two\n"
-      end
-    end
-
-    describe '.on_the_menu?' do
-      before do
-        Yuyi::Rolls.stub(:on_the_menu?)
-        roll.on_the_menu? :foo
-      end
-
-      after do
-        Yuyi::Rolls.unstub(:on_the_menu?)
-      end
-
-      it 'should call Yuyi::Rolls.on_the_menu? method' do
-        expect(Yuyi::Rolls).to have_received(:on_the_menu?)
-      end
-    end
-
-    describe '.options' do
-      before do
-        RollTestClass.stub(:file_name).and_return('roll')
-        Yuyi::Menu.stub(:object).and_return({ 'roll' => { :foo => :bar }})
-      end
-
-      after do
-        Yuyi::Menu.unstub(:object)
-      end
-
-      it 'should return options form the menu' do
-        expect(roll.options[:foo]).to eq :bar
-      end
-    end
-
-    describe '.command?' do
-      it 'should return true if command exists' do
-        expect(roll.command?('ruby')).to eq true
-        expect(roll.command?('rubyfoo')).to eq false
       end
     end
   end
 
-  context 'when testing each individual roll' do
+  context 'when testing the' do
     Dir.glob(File.join Yuyi::ROLLS_DIR, '*.rb').each do |file_name|
-      before do
-        require file_name
-      end
+      require file_name
+      roll_class = Yuyi::Menu.class_var(:classes)[File.basename(file_name, '.rb').to_sym]
 
-      describe File.basename(file_name, '.rb') do
-        let(:roll_class) { Yuyi::Rolls.class_var(:all_on_menu)[File.basename(file_name, '.rb').to_sym] }
+      describe roll_class.title do
+        let(:roll_class) { Yuyi::Menu.class_var(:classes)[File.basename(file_name, '.rb').to_sym] }
         let(:roll){ roll_class.new }
 
         before do
@@ -154,25 +106,28 @@ describe Yuyi::Roll do
           roll_class.constants.each{ |c| roll_class.send(:remove_const, c) }
         end
 
-        describe 'the class' do
+        describe 'class' do
+          before do
+            Yuyi::Roll.stub(:install)
+          end
+
+          after do
+            Yuyi::Roll.unstub(:install)
+          end
+
           after :each do
             load file_name
           end
 
           # Test required roll methods here...
           #
-          it 'should call the title method' do
-            expect(Yuyi::Roll).to receive(:title)
-          end
-
           it 'should call the install method' do
             expect(Yuyi::Roll).to receive(:install)
           end
         end
 
-        describe 'the instance' do
+        describe 'instance' do
           before do
-            roll_class.stub(:title).and_return('Foo')
             roll_class.stub(:dependencies).and_return([:foo])
             roll_class.stub(:install).and_return(Proc.new{'foo'})
             roll_class.stub(:installed?).and_return(Proc.new{true})
@@ -180,9 +135,11 @@ describe Yuyi::Roll do
             load file_name
           end
 
-          it 'should respond to #title' do
-            expect(roll_class).to receive(:title)
-            expect(roll.title).to eq 'Foo'
+          after do
+            roll_class.unstub(:dependencies)
+            roll_class.unstub(:install)
+            roll_class.unstub(:installed?)
+            roll_class.unstub(:available_options)
           end
 
           it 'should respond to #dependencies' do

@@ -38,7 +38,7 @@ module Yuyi::Cli
       else
         header
         get_menu
-        Yuyi::Rolls.load
+        Yuyi::Menu.load
       end
     end
   end
@@ -108,6 +108,7 @@ module Yuyi::Cli
       gets
     end.rstrip
 
+    say
     yield output
   end
 
@@ -118,15 +119,16 @@ module Yuyi::Cli
     }
 
     indent = 2
-    longestOption = roll.available_options.keys.map(&:to_s).max_by(&:length).length + indent
+    longest_option = roll.available_options.keys.map(&:to_s).max_by(&:length).length + indent
 
     exampleHash = {}
     exampleHash[roll.file_name.to_s] = {}
 
     roll.available_options.each do |k, v|
-      descriptionString = "#{' ' * indent}\e[36m#{k.to_s}\e[0m: "
+      key_color = v[:required] ? 31 : 36
+      descriptionString = "\e[#{key_color}m#{k.to_s.rjust(longest_option)}\e[0m: "
       descriptionString << "#{v[:description]}"
-      descriptionString << "\n#{' ' * (longestOption + indent)}\e[33mdefault #{v[:default]}\e[0m" if v[:default]
+      descriptionString << "\n#{' ' * (longest_option + indent)}\e[33mdefault #{v[:default]}\e[0m" if v[:default]
       optionHash[:descriptions] << descriptionString
 
       exampleHash[roll.file_name.to_s][k.to_s] = v[:example]
@@ -134,12 +136,23 @@ module Yuyi::Cli
 
     optionHash[:examples] << exampleHash.to_yaml.sub("--- \n", ' ' * indent)
 
-    say
     say "Available options for the #{roll.title} roll...", :type => :success
     say optionHash[:descriptions].join("\n")
     say
     say "#{' ' * indent}Example", :type => :warn
     say optionHash[:examples].join("\n").gsub("\n", "\n#{' ' * indent}")
+  end
+
+  def write_to_file file, *text
+    File.open(File.expand_path(file), File::WRONLY|File::CREAT|File::APPEND) do |file|
+      file.write text * "\n"
+      file.write "\n"
+    end
+  end
+
+  def command? command
+    `which #{command}`
+    $?.success?
   end
 
 private
@@ -160,7 +173,8 @@ private
     until menu
       say 'Navigate to the menu you want to order from...', :type => :success
       menu = ask '...or just press enter to look for `menu.yml` in your Documents folder.', :readline => true, :color => 36 do |path|
-        Yuyi::Menu.new(path.empty? ? Yuyi::DEFAULT_ROLL_PATH : path).class.object
+        Yuyi::Menu.new(path.empty? ? Yuyi::DEFAULT_ROLL_PATH : path)
+        Yuyi::Menu.object
       end
     end
   end

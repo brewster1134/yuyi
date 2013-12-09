@@ -33,18 +33,15 @@ If a roll accepts arguments, indent the key/value pairs below the roll name.  Yo
 ##### Writing Rolls
 REQUIRED
 * `< Yuyu::Roll`  The roll class needs to inherit from Yuyi::Roll
-* `title`         A nice friendly title for what is to be installed
 * `install`       A block with your installation isntructions
 
 OPTIONAL
 * `dependencies`      An array of other roll names that your roll depends on
-* `isntalled?`        A block that tests if your roll is already installed or not (must return nil or false)
+* `installed?`        A block that tests if your roll is already installed or not (must return nil or false)
 * `available_options` A hash of options (and a nested hash of option meta data _* see example below *_)
 
 ```ruby
 class MyRoll < Yuyi::Roll
-  title 'My Custom Roll'
-
   dependencies [
     :homebrew
   ]
@@ -54,6 +51,7 @@ class MyRoll < Yuyi::Roll
       :description => 'The specific version you would like to install',
       :example => '1.0', # optional
       :default => '2.0' # optional
+      :required => true # optional - shows option in red
     }
   )
 
@@ -68,6 +66,9 @@ end
 ```
 
 ### TODO
+* Dynamic dependencies
+* Enforce required options
+* New roll generator
 * Install script interacts with /bin/fire arguments
 * Roll specific optional `uninstall` method
 

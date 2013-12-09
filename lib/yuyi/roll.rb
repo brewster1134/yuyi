@@ -2,26 +2,38 @@ class Yuyi::Roll
   # Add to global collection of rolls
   #
   def self.inherited roll_class
-    file_name = caller.first[/[a-z_]+?(?=\.rb)/].to_sym
-    roll_class.file_name = file_name
-    Yuyi::Rolls.add_roll file_name, roll_class
+    # convert class name to a human readble title-cased string
+    roll_class.title = roll_class.to_s.gsub(/(?=[A-Z])/, ' ').strip
+
+    # convert absolute path to a file name symbol
+    roll_class.file_name = file_name = caller.first[/[a-z_]+?(?=\.rb)/].to_sym
+
+    Yuyi::Menu.add_roll file_name, roll_class
   end
 
-  def self.add_dependencies
-    dependencies.each{ |roll| Yuyi::Rolls.require_roll roll }
+  def self.require_dependencies
+    @dependencies.each do |roll|
+      Yuyi::Menu.require_roll roll unless Yuyi::Menu.on_the_menu?(roll)
+    end
   end
 
   # DSL Methods called when each roll is required
   # These act as meta data for the roll class
   #
-  def self.title title = nil; @title ||= title; end
+  def self.title= title
+    @title ||= title
+  end
+  def self.title; @title; end
   def title; self.class.title; end
 
-  def self.file_name= file_name; @file_name ||= file_name; end
+  def self.file_name= file_name
+    @file_name ||= file_name
+  end
   def self.file_name; @file_name; end
 
   def self.dependencies dependencies = []
     @dependencies ||= dependencies
+    require_dependencies
   end
   def dependencies; self.class.dependencies; end
 
@@ -40,43 +52,33 @@ class Yuyi::Roll
   end
   def available_options; self.class.available_options; end
 
+  # Get the latest options from the menu or return an empty object
+  #
+  def self.options
+    options = Yuyi::Menu.object[file_name] || {}
+  end
+  def options; self.class.options; end
+
+  def self.present_options
+    options = false
+    unless available_options.empty?
+      Yuyi.present_options self
+      options = true
+    end
+    options
+  end
+
+  def command? command; Yuyi.command? command; end
+
   # Run when roll is ordered
   #
   def initialize
     if installed?
-      Yuyi.say "-= #{self.title} already installed", :type => :warn
+      Yuyi.say "-= #{title} already installed", :type => :warn
     else
-      Yuyi.say "-= Installing #{self.title}...", :type => :success
+      Yuyi.say "-= Installing #{title}...", :type => :success
       install
     end
     Yuyi.say
-  end
-
-  def write_to_file file, *text
-    File.open(File.expand_path(file), File::WRONLY|File::CREAT|File::APPEND) do |file|
-      file.write text * "\n"
-      file.write "\n"
-    end
-  end
-
-  def on_the_menu? roll
-    Yuyi::Rolls.on_the_menu? roll
-  end
-
-  def options
-    # Get options from menu or return an empty object
-    options = Yuyi::Menu.object[self.class.file_name.to_s] || {}
-
-    # Convert keys to symbols
-    options.keys.each do |key|
-      options[key.to_sym] = options.delete(key)
-    end
-
-    options
-  end
-
-  def command? command
-    `which #{command}`
-    $?.success?
   end
 end

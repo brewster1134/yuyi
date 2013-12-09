@@ -19,17 +19,17 @@ describe Yuyi::Cli do
   describe '.start' do
     context 'without arguments' do
       before do
-        Yuyi::Rolls.stub(:load)
+        Yuyi::Menu.stub(:load)
         CliTest.stub(:get_menu)
         CliTest.start []
       end
 
       after do
-        Yuyi::Rolls.unstub(:load)
+        Yuyi::Menu.unstub(:load)
       end
 
       it 'should load rolls' do
-        expect(Yuyi::Rolls).to have_received(:load)
+        expect(Yuyi::Menu).to have_received(:load)
       end
     end
 
@@ -48,6 +48,8 @@ describe Yuyi::Cli do
       options.each do |option|
         before do
           CliTest.stub option
+
+          # Test both option forms
           CliTest.start "-#{option.to_s.chars.first}"
           CliTest.start "--#{option}"
         end
@@ -60,43 +62,81 @@ describe Yuyi::Cli do
   end
 
   describe '.get_menu' do
-    subject { CliTest }
+    before do
+      Yuyi::Roll.any_instance.stub(:installed?).and_return(true)
+      Yuyi::Menu.any_instance.stub(:require_rolls)
+      Yuyi::Menu.class_var :classes, {}
+    end
 
     after do
+      Yuyi::Roll.any_instance.unstub(:installed?)
+      Yuyi::Menu.any_instance.unstub(:require_rolls)
       Readline.unstub(:readline)
+    end
+
+    after :each do
+      Yuyi.send(:get_menu)
     end
 
     context 'when no input is given' do
       before do
         Readline.stub(:readline).and_return('')
-        subject.send(:get_menu)
       end
 
       it 'should load the default menu' do
-        expect(Yuyi::Menu.path).to eq '~/Documents/menu.yml'
+        expect(Yuyi::Menu).to receive(:new).with('~/Documents/menu.yml').and_call_original
       end
     end
 
     context 'when an invalid path is given' do
       before do
         Readline.stub(:readline).and_return('foo', 'bar', '')
-        subject.send(:get_menu)
       end
 
       it 'should request input again' do
-        expect(Readline).to have_received(:readline).exactly(3).times
+        expect(Readline).to receive(:readline).exactly(3).times
       end
     end
 
     context 'when a custom path is given' do
       before do
-        Readline.stub(:readline).and_return('spec/fixtures/menu_load_path.yml')
-        subject.send(:get_menu)
+        Readline.stub(:readline).and_return('spec/fixtures/menu_load.yml')
       end
 
       it 'should load the menu' do
-        expect(Yuyi::Menu.path).to eq 'spec/fixtures/menu_load_path.yml'
+        expect(Yuyi::Menu).to receive(:new).with('spec/fixtures/menu_load.yml').and_call_original
       end
+    end
+  end
+
+  describe '.write_to_file' do
+    before do
+      Yuyi.write_to_file 'test', 'foo'
+    end
+
+    after do
+      FileUtils.rm 'test'
+    end
+
+    it 'should create a file if it doesnt exist' do
+      expect(File.exists?('test')).to be_true
+    end
+
+    it 'should append to the file' do
+      Yuyi.write_to_file 'test', 'bar'
+      expect(File.open('test').read).to eq "foo\nbar\n"
+    end
+
+    it 'should accept multiple text arguments' do
+      Yuyi.write_to_file 'test', 'array_one', 'array_two'
+      expect(File.open('test').read).to eq "foo\narray_one\narray_two\n"
+    end
+  end
+
+  describe '.command?' do
+    it 'should return true if command exists' do
+      expect(Yuyi.command?('ruby')).to eq true
+      expect(Yuyi.command?('rubyfoo')).to eq false
     end
   end
 end

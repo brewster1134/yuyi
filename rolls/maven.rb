@@ -1,13 +1,13 @@
-class Git < Yuyi::Roll
+class Maven < Yuyi::Roll
   dependencies [
     :homebrew
   ]
 
   install do
-    `brew install git`
+    `brew install maven`
   end
 
   installed? do
-    `brew list` =~ /git/
+    `brew list` =~ /maven/
   end
 end

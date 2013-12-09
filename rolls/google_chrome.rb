@@ -1,6 +1,4 @@
 class GoogleChrome < Yuyi::Roll
-  title 'Google Chrome'
-
   dependencies [
     :homebrew_cask
   ]

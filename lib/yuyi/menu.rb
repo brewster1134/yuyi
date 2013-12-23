@@ -23,6 +23,7 @@ class Yuyi::Menu
   # Require a single roll
   #
   def self.require_roll roll
+    return if on_the_menu? roll
     begin
       # Require roll (which will then add its class to the @all_on_menu class var)
       require roll.to_s

@@ -1,7 +1,5 @@
 class Node < Yuyi::Roll
-  dependencies [
-    :homebrew
-  ]
+  dependencies :homebrew
 
   install do
     `brew install node`

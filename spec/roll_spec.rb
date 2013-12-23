@@ -2,15 +2,20 @@ require 'spec_helper'
 
 describe Yuyi::Roll do
   before do
+    # Bypass actually requiring a file and just add it straight to the @@classes object on the menu
+    Yuyi::Menu.stub(:require_roll) do |roll|
+      Yuyi::Menu.add_roll(roll, roll)
+    end
+
     class RollTestClass < Yuyi::Roll
-      dependencies [
-        :foo
-      ]
+      dependencies :foo
+      add_dependencies :bar
     end
     RollTestClass.any_instance.stub(:installed?).and_return(true)
   end
 
   after do
+    Yuyi::Menu.unstub(:require_roll)
     RollTestClass.any_instance.unstub(:installed?)
   end
 
@@ -22,6 +27,10 @@ describe Yuyi::Roll do
 
       it 'should add the roll' do
         expect(Yuyi::Menu.class_var(:classes)[:roll_spec]).to eq RollTestClass
+      end
+
+      it 'should add dependencies' do
+        expect(RollTestClass.dependencies).to eq([:foo, :bar])
       end
 
       context 'with no options' do
@@ -94,6 +103,9 @@ describe Yuyi::Roll do
 
   context 'when testing the' do
     Dir.glob(File.join Yuyi::ROLLS_DIR, '*.rb').each do |file_name|
+      # set menu object to empty hash to prevent errors if any rolls access it
+      Yuyi::Menu.class_var(:object, {})
+
       require file_name
       roll_class = Yuyi::Menu.class_var(:classes)[File.basename(file_name, '.rb').to_sym]
 

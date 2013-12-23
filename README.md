@@ -31,20 +31,21 @@ If a roll accepts arguments, indent the key/value pairs below the roll name.  Yo
 * rspec
 
 ##### Writing Rolls
-REQUIRED
+###### _required_
 * `< Yuyu::Roll`  The roll class needs to inherit from Yuyi::Roll
 * `install`       A block with your installation isntructions
 
-OPTIONAL
-* `dependencies`      An array of other roll names that your roll depends on
+###### _optional_
+* `dependencies`      Static dependencies (comma separated symbols) that your roll depends on
+* `add_dependencies`    Dynamic dependencies (comma separated symbols) that your roll may depend on given certain conditions
 * `installed?`        A block that tests if your roll is already installed or not (must return nil or false)
 * `available_options` A hash of options (and a nested hash of option meta data _* see example below *_)
 
 ```ruby
 class MyRoll < Yuyi::Roll
-  dependencies [
-    :homebrew
-  ]
+  dependencies :homebrew
+
+  add_dependencies :hombrew_cask if options[:version] == '2.0'
 
   available_options(
     :version => {
@@ -66,7 +67,6 @@ end
 ```
 
 ### TODO
-* Dynamic dependencies
 * Enforce required options
 * New roll generator
 * Install script interacts with /bin/fire arguments

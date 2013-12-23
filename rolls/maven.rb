@@ -1,7 +1,5 @@
 class Maven < Yuyi::Roll
-  dependencies [
-    :homebrew
-  ]
+  dependencies :homebrew
 
   install do
     `brew install maven`

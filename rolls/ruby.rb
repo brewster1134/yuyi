@@ -3,9 +3,7 @@ class Ruby < Yuyi::Roll
   AVAIL_VERSIONS = `rbenv install -l`.scan(RUBY_VERSION_REGEX).flatten
   INSTALLED_VERSIONS = `rbenv versions`.scan(RUBY_VERSION_REGEX).flatten
 
-  dependencies [
-    :rbenv
-  ]
+  dependencies :rbenv
 
   available_options(
     :versions => {

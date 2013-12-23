@@ -1,7 +1,5 @@
 class Rbenv < Yuyi::Roll
-  dependencies [
-    :homebrew
-  ]
+  dependencies :homebrew
 
   install do
     # Remove RVM

@@ -1,7 +1,5 @@
 class Alfred < Yuyi::Roll
-  dependencies [
-    :homebrew_cask
-  ]
+  dependencies :homebrew_cask
 
   install do
     `brew cask install alfred`

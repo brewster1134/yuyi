@@ -12,9 +12,7 @@ class Yuyi::Roll
   end
 
   def self.require_dependencies
-    @dependencies.each do |roll|
-      Yuyi::Menu.require_roll roll unless Yuyi::Menu.on_the_menu?(roll)
-    end
+    @dependencies.each { |roll| Yuyi::Menu.require_roll roll }
   end
 
   # DSL Methods called when each roll is required
@@ -31,11 +29,23 @@ class Yuyi::Roll
   end
   def self.file_name; @file_name; end
 
-  def self.dependencies dependencies = []
-    @dependencies ||= dependencies
+  def self.dependencies *dependencies
+    @dependencies ||= dependencies.flatten
     require_dependencies
   end
   def dependencies; self.class.dependencies; end
+
+  def self.add_dependencies *dependencies_array
+    # Create @dependencies if it doesnt exist yet
+    # This prevent needing to call `dependencies` on a roll if all dependencies are dynamic
+    @dependencies ||= []
+
+    # Merge dynamic dependencies with static dependencies with bitwise operator
+    @dependencies |= dependencies_array
+
+    # Require dynamic dependencies
+    dependencies.each { |d| Yuyi::Menu.require_roll d }
+  end
 
   def self.install &install
     @install ||= install

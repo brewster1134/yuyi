@@ -34,12 +34,13 @@ If a roll accepts arguments, indent the key/value pairs below the roll name.  Yo
 ###### _required_
 * `< Yuyu::Roll`  The roll class needs to inherit from Yuyi::Roll
 * `install`       A block with your installation isntructions
+* `installed?`    A block that tests if your roll is already installed or not (must return nil or false)
 
 ###### _optional_
 * `dependencies`      Static dependencies (comma separated symbols) that your roll depends on
-* `add_dependencies`    Dynamic dependencies (comma separated symbols) that your roll may depend on given certain conditions
-* `installed?`        A block that tests if your roll is already installed or not (must return nil or false)
+* `add_dependencies`  Dynamic dependencies (comma separated symbols) that your roll may depend on given certain conditions
 * `available_options` A hash of options (and a nested hash of option meta data _* see example below *_)
+* `update`            A block with your update isntructions
 
 ```ruby
 class MyRoll < Yuyi::Roll
@@ -57,7 +58,11 @@ class MyRoll < Yuyi::Roll
   )
 
   install do
-    `brew install my_roll`
+    run 'brew install my_roll'
+  end
+
+  update do
+    run 'brew upgrade my_roll'
   end
 
   installed? do
@@ -67,6 +72,7 @@ end
 ```
 
 ### TODO
+* Display roll version
 * Enforce required options
 * New roll generator
 * Install script interacts with /bin/fire arguments

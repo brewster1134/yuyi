@@ -1,3 +1,4 @@
+require 'open3'
 require 'readline'
 require 'yaml'
 
@@ -87,6 +88,10 @@ module Yuyi::Cli
       colorize text, args[:color]
     end
 
+    if args[:indent]
+      text = (' ' * args[:indent]) + text
+    end
+
     puts text
   end
 
@@ -139,7 +144,7 @@ module Yuyi::Cli
     say "Available options for the #{roll.title} roll...", :type => :success
     say optionHash[:descriptions].join("\n")
     say
-    say "#{' ' * indent}Example", :type => :warn
+    say "Example", :type => :success, :indent => indent
     say optionHash[:examples].join("\n").gsub("\n", "\n#{' ' * indent}")
   end
 
@@ -153,6 +158,18 @@ module Yuyi::Cli
   def command? command
     `which #{command}`
     $?.success?
+  end
+
+  def run command, args = {}
+    Open3.popen3 command do |stdin, stdout, stderr|
+      err = stderr.read.chomp
+      out = stdout.read.chomp
+
+      if args[:verbose]
+        say(err, args.merge({:type => :fail})) unless err.empty?
+        say(out, args.merge({:type => :success})) unless out.empty?
+      end
+    end
   end
 
 private

@@ -5,7 +5,7 @@ describe Yuyi::Menu do
     let(:menu) { Yuyi::Menu.new }
 
     before do
-      Yuyi::Menu.stub(:load).and_return(:foo)
+      Yuyi::Menu.stub(:load).and_return({:menu => 'foo'})
       Yuyi::Menu.any_instance.stub(:require_rolls)
       Yuyi::Menu.any_instance.stub(:present_options)
     end
@@ -17,7 +17,7 @@ describe Yuyi::Menu do
     end
 
     it 'should set the object class var' do
-      expect(menu.class.class_var(:object)).to eq(:foo)
+      expect(menu.class.class_var(:object)).to eq({:menu => 'foo'})
     end
 
     it 'should call other methods' do

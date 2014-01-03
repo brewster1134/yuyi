@@ -1,6 +1,6 @@
 class Yuyi::Menu
   @@classes = {}
-  @@object = nil
+  @@object = {}
   @@path = nil
 
   def initialize path = '~/Documents/menu.yml'
@@ -69,8 +69,6 @@ class Yuyi::Menu
   end
 
 private
-
-  # def object; self.class.object; end
 
   # Require all rolls on the menu
   #

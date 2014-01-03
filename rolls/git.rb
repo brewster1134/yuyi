@@ -2,7 +2,11 @@ class Git < Yuyi::Roll
   dependencies :homebrew
 
   install do
-    `brew install git`
+    run 'brew install git'
+  end
+
+  update do
+    run 'brew upgrade git'
   end
 
   installed? do

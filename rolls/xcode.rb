@@ -19,7 +19,7 @@ class Xcode < Yuyi::Roll
 
     install_dir = "#{ENV['TMPDIR']}Xcode"
     FileUtils.rm_rf install_dir
-    `git clone https://gist.github.com/6237049.git #{install_dir}`
+    run "git clone https://gist.github.com/6237049.git #{install_dir}"
     script_file = File.join(install_dir, 'Install_XCode.applescript')
 
     # Replace the credentials in the script
@@ -32,7 +32,7 @@ class Xcode < Yuyi::Roll
 
     # Run the script
     Dir.chdir install_dir
-    `osascript Install_XCode.applescript`
+    run 'osascript Install_XCode.applescript'
   end
 
   installed? do

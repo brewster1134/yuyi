@@ -2,7 +2,7 @@ class HipChat < Yuyi::Roll
   dependencies :homebrew_cask
 
   install do
-    `brew cask install hipchat`
+    run 'brew cask install hipchat'
   end
 
   installed? do

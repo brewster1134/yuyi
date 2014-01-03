@@ -21,7 +21,18 @@ class Ruby < Yuyi::Roll
     versions << AVAIL_VERSIONS.last if versions.empty?
 
     versions.each do |v|
-      `rbenv install #{v}` unless INSTALLED_VERSIONS.include? v
+      run "rbenv install #{v}" unless INSTALLED_VERSIONS.include? v
+    end
+
+    run "rbenv global #{versions.last}"
+  end
+
+  update do
+    # Install the latest version of ruby if no version are specified in the menu
+    # and the latest version is not already installed
+    if options[:versions] && options[:versions].empty? && !INSTALLED_VERSIONS.include?(AVAIL_VERSIONS.last)
+      run "rbenv install #{AVAIL_VERSIONS.last}"
+      run "rbenv global #{AVAIL_VERSIONS.last}"
     end
   end
 

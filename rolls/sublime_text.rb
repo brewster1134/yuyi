@@ -11,9 +11,9 @@ class SublimeText < Yuyi::Roll
 
   install do
     if options[:version] == 2
-      `brew cask install sublime-text`
+      run 'brew cask install sublime-text'
     else
-      `brew cask install sublime-text-3`
+      run 'brew cask install sublime-text-3'
     end
   end
 

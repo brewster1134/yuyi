@@ -29,6 +29,11 @@ class Yuyi::Roll
   end
   def self.file_name; @file_name; end
 
+  def self.available_options available_options = {}
+    @available_options ||= available_options
+  end
+  def available_options; self.class.available_options; end
+
   def self.dependencies *dependencies
     @dependencies ||= dependencies.flatten
     require_dependencies
@@ -47,20 +52,33 @@ class Yuyi::Roll
     dependencies.each { |d| Yuyi::Menu.require_roll d }
   end
 
-  def self.install &install
-    @install ||= install
+  def self.installed? &block
+    @installed ||= block
   end
-  def install; instance_eval(&self.class.install); end
+  def installed?
+    installed = !!instance_eval(&self.class.installed?)
+    if installed
+      Yuyi.say "-= #{title} already installed", :type => :warn
+    end
+    installed
+  end
 
-  def self.installed? &installed
-    @installed ||= installed
+  def self.install &block
+    @install ||= block
   end
-  def installed?; !!instance_eval(&self.class.installed?); end
+  def install
+    Yuyi.say "-= Installing #{title}...", :type => :success
+    instance_eval(&self.class.install)
+  end
 
-  def self.available_options available_options = {}
-    @available_options ||= available_options
+  def self.update &block
+    @update ||= block
   end
-  def available_options; self.class.available_options; end
+  def update
+    return unless self.class.update
+    Yuyi.say '...Installing Updates', :type => :success, :indent => 3
+    instance_eval(&self.class.update)
+  end
 
   # Get the latest options from the menu or return an empty object
   #
@@ -78,15 +96,16 @@ class Yuyi::Roll
     options
   end
 
-  def command? command; Yuyi.command? command; end
+  def say *args; Yuyi.say *args; end
+  def run *args; Yuyi.run *args; end
+  def command? *args; Yuyi.command? *args; end
 
   # Run when roll is ordered
   #
   def initialize
     if installed?
-      Yuyi.say "-= #{title} already installed", :type => :warn
+      update
     else
-      Yuyi.say "-= Installing #{title}...", :type => :success
       install
     end
     Yuyi.say

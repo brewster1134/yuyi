@@ -80,6 +80,16 @@ class Yuyi::Roll
     instance_eval(&self.class.update)
   end
 
+  def self.uninstall &block
+    @uninstall ||= block
+  end
+  def uninstall
+    if options[:uninstall]
+      Yuyi.say "-= Uninstalling #{title}...", :type => :success
+      instance_eval(&self.class.uninstall)
+    end
+  end
+
   # Get the latest options from the menu or return an empty object
   #
   def self.options

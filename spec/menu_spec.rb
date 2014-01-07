@@ -27,7 +27,7 @@ describe Yuyi::Menu do
 
     context 'when no path is specified' do
       it 'should call .load with the default path' do
-        expect(menu.class.path).to eq('~/Documents/menu.yml')
+        expect(menu.class.path).to eq Yuyi::DEFAULT_ROLL_PATH
       end
     end
 

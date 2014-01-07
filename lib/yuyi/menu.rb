@@ -3,7 +3,7 @@ class Yuyi::Menu
   @@object = {}
   @@path = nil
 
-  def initialize path = '~/Documents/menu.yml'
+  def initialize path = Yuyi::DEFAULT_ROLL_PATH
     @@path = path
     return unless @@object = self.class.load
     require_rolls

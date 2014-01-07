@@ -10,7 +10,7 @@ Nothing! Well thats not entirely true... the dependencies are already available 
 * Bash >= 3.2
 
 #### Quick Usage
-* Create a `menu.yml` file in your Documents folder _(see below for examples)_
+* Create a `.yuyi_menu.yml` file in your home folder _(see below for examples)_
 * Run `ruby -e "$(curl -fsSL https://raw.github.com/brewster1134/Yuyi/master/bin/install)"` in Terminal
 
 #### Example Menu

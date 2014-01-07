@@ -189,7 +189,7 @@ private
     menu = nil
     until menu
       say 'Navigate to the menu you want to order from...', :type => :success
-      menu = ask '...or just press enter to look for `menu.yml` in your Documents folder.', :readline => true, :color => 36 do |path|
+      menu = ask '...or just press enter to look for `.yuyi_menu.yml` in your home folder.', :readline => true, :color => 36 do |path|
         Yuyi::Menu.new(path.empty? ? Yuyi::DEFAULT_ROLL_PATH : path)
         Yuyi::Menu.object
       end

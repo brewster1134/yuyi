@@ -63,6 +63,7 @@ describe Yuyi::Cli do
 
   describe '.get_menu' do
     before do
+      stub_const 'Yuyi::DEFAULT_ROLL_PATH', 'spec/fixtures/menu_load.yml'
       Yuyi::Roll.any_instance.stub(:installed?).and_return(true)
       Yuyi::Menu.any_instance.stub(:require_rolls)
       Yuyi::Menu.class_var :classes, {}
@@ -84,7 +85,7 @@ describe Yuyi::Cli do
       end
 
       it 'should load the default menu' do
-        expect(Yuyi::Menu).to receive(:new).with('~/Documents/menu.yml').and_call_original
+        expect(Yuyi::Menu).to receive(:new).with(Yuyi::DEFAULT_ROLL_PATH).and_call_original
       end
     end
 

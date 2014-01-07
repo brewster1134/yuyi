@@ -1,5 +1,5 @@
 # Yuyi
-Opinionated automation for setting up a new machine.
+Opinionated automation for installing/uninstalling/updating your machine environment
 
 ###### Support
 * Mac OS X
@@ -73,6 +73,7 @@ end
 
 ### TODO
 * Display roll version
+* setup (post suite install tasks)
 * Enforce required options
 * New roll generator
 * Install script interacts with /bin/fire arguments

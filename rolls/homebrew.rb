@@ -4,7 +4,7 @@ class Homebrew < Yuyi::Roll
   end
 
   update do
-    run 'brew update'
+    run 'brew update && brew upgrade'
   end
 
   installed? do

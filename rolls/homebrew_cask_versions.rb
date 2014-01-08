@@ -5,6 +5,10 @@ class HomebrewCaskVersions < Yuyi::Roll
     run 'brew tap caskroom/versions'
   end
 
+  uninstall do
+    run 'brew untap caskroom/versions'
+  end
+
   update do
     say 'Updated via Homebrew', :type => :success, :indent => 6
   end

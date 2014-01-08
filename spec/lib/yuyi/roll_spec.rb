@@ -13,6 +13,8 @@ describe Yuyi::Roll do
 
       class RollTestClass < Yuyi::Roll
         install {}
+        uninstall {}
+        update {}
         installed? {}
         dependencies :foo
         add_dependencies :bar
@@ -54,7 +56,11 @@ describe Yuyi::Roll do
     end
 
     it 'should respond to .update' do
-      expect(subject.update).to be nil
+      expect(subject.update).to be_a Proc
+    end
+
+    it 'should respond to .uninstall' do
+      expect(subject.uninstall).to be_a Proc
     end
 
     context 'with no options' do
@@ -97,41 +103,63 @@ describe Yuyi::Roll do
 
     context 'when already installed' do
       before do
-        RollTestClass.any_instance.stub(:installed?).and_return(true)
+        subject.any_instance.stub(:installed?).and_return(true)
       end
 
       after do
-        RollTestClass.any_instance.unstub(:installed?)
-      end
-
-      after do
-        RollTestClass.new
+        subject.new
+        subject.any_instance.unstub(:installed?)
       end
 
       it 'should not call install' do
-        expect_any_instance_of(RollTestClass).to_not receive(:install)
+        expect_any_instance_of(subject).to_not receive(:install)
       end
 
-      it 'should call update' do
-        expect_any_instance_of(RollTestClass).to receive(:update)
+      context 'when uninstall option is set' do
+        before do
+          subject.any_instance.stub(:options).and_return({ :uninstall => true })
+        end
+
+        after do
+          subject.any_instance.unstub(:options)
+        end
+
+        it 'should not call .uninstall' do
+          expect_any_instance_of(subject).to_not receive(:uninstall)
+        end
+      end
+
+      context 'when uninstall option is not set' do
+        before do
+          subject.any_instance.stub(:options).and_return({})
+        end
+
+        after do
+          subject.any_instance.unstub(:options)
+        end
+
+        it 'should call .update' do
+          expect_any_instance_of(subject).to receive(:update)
+        end
+
+        it 'should not call .uninstall' do
+          expect_any_instance_of(subject).to_not receive(:uninstall)
+        end
       end
     end
 
     context 'when not already installed' do
       before do
-        RollTestClass.any_instance.stub(:installed?).and_return(false)
+        subject.any_instance.stub(:installed?).and_return(false)
       end
 
       after do
-        RollTestClass.any_instance.unstub(:installed?)
-      end
-
-      after do
-        RollTestClass.new
+        subject.new
+        subject.any_instance.unstub(:installed?)
       end
 
       it 'should call install' do
-        expect_any_instance_of(RollTestClass).to receive(:install)
+        expect_any_instance_of(subject).to receive(:install)
       end
     end
   end
@@ -161,6 +189,14 @@ describe 'Rolls' do
       #
       it 'should define .install' do
         expect(roll_class).to receive(:install){ |&block| expect(block).to be_a(Proc) }
+      end
+
+      it 'should define .uninstall' do
+        expect(roll_class).to receive(:uninstall){ |&block| expect(block).to be_a(Proc) }
+      end
+
+      it 'should define .update' do
+        expect(roll_class).to receive(:update){ |&block| expect(block).to be_a(Proc) }
       end
 
       it 'should define .installed?' do

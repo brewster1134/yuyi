@@ -14,17 +14,17 @@ class Ruby < Yuyi::Roll
   )
 
   install do
-    # Collect versions from options and make sure they are available through rbenv
-    versions = (options[:versions] || []).select{ |v| AVAIL_VERSIONS.include? v }
-
-    # Install the last available version if none specified were available
-    versions << AVAIL_VERSIONS.last if versions.empty?
-
     versions.each do |v|
       run "rbenv install #{v}" unless INSTALLED_VERSIONS.include? v
     end
 
     run "rbenv global #{versions.last}"
+  end
+
+  uninstall do
+    versions.each do |v|
+      run "rbenv uninstall #{v}"
+    end
   end
 
   update do
@@ -38,5 +38,15 @@ class Ruby < Yuyi::Roll
 
   installed? do
     (options[:versions] || []).all?{ |v| INSTALLED_VERSIONS.include? v }
+  end
+
+  # Roll methods
+  #
+  def versions
+    # Collect versions from options and make sure they are available through rbenv
+    versions = (options[:versions] || []).select{ |v| AVAIL_VERSIONS.include? v }
+
+    # Install the last available version if none specified were available
+    versions << AVAIL_VERSIONS.last if versions.empty?
   end
 end

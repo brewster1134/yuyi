@@ -56,18 +56,13 @@ class Yuyi::Roll
     @installed ||= block
   end
   def installed?
-    installed = !!instance_eval(&self.class.installed?)
-    if installed
-      Yuyi.say "-= #{title} already installed", :type => :warn
-    end
-    installed
+    !!instance_eval(&self.class.installed?)
   end
 
   def self.install &block
     @install ||= block
   end
   def install
-    Yuyi.say "-= Installing #{title}...", :type => :success
     instance_eval(&self.class.install)
   end
 
@@ -75,8 +70,6 @@ class Yuyi::Roll
     @update ||= block
   end
   def update
-    return unless self.class.update
-    Yuyi.say '...Installing Updates', :type => :success, :indent => 3
     instance_eval(&self.class.update)
   end
 
@@ -84,10 +77,7 @@ class Yuyi::Roll
     @uninstall ||= block
   end
   def uninstall
-    if options[:uninstall]
-      Yuyi.say "-= Uninstalling #{title}...", :type => :success
-      instance_eval(&self.class.uninstall)
-    end
+    instance_eval(&self.class.uninstall)
   end
 
   # Get the latest options from the menu or return an empty object
@@ -114,8 +104,16 @@ class Yuyi::Roll
   #
   def initialize
     if installed?
-      update
+      Yuyi.say "-= #{title} already installed", :type => :warn
+      if options[:uninstall]
+        Yuyi.say "-= Uninstalling #{title}...", :type => :success
+        uninstall
+      else
+        Yuyi.say '-= Installing Updates', :type => :success, :indent => 3
+        update
+      end
     else
+      Yuyi.say "-= Installing #{title}...", :type => :success
       install
     end
     Yuyi.say

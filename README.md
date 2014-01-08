@@ -10,7 +10,7 @@ Nothing! Well thats not entirely true... the dependencies are already available 
 * Bash >= 3.2
 
 #### Quick Usage
-* Create a `.yuyi_menu.yml` file in your home folder _(see below for examples)_
+* Create a `.yuyi_menu` file in your home folder _(see below for examples)_
 * Run `ruby -e "$(curl -fsSL https://raw.github.com/brewster1134/Yuyi/master/bin/install)"` in Terminal
 
 #### Example Menu
@@ -33,14 +33,15 @@ If a roll accepts arguments, indent the key/value pairs below the roll name.  Yo
 ##### Writing Rolls
 ###### _required_
 * `< Yuyu::Roll`  The roll class needs to inherit from Yuyi::Roll
-* `install`       A block with your installation isntructions
-* `installed?`    A block that tests if your roll is already installed or not (must return nil or false)
+* `install`       A block to install a roll
+* `uninstall`     A block to uninstall a roll
+* `update`        A block to update a roll
+* `installed?`    A block to tests if your roll is already installed or not
 
 ###### _optional_
-* `dependencies`      Static dependencies (comma separated symbols) that your roll depends on
-* `add_dependencies`  Dynamic dependencies (comma separated symbols) that your roll may depend on given certain conditions
+* `dependencies`      Declare dependencies (comma separated symbols) that your roll depends on
+* `add_dependencies`  Add dependencies conditionally at runtime (comma separated symbols)
 * `available_options` A hash of options (and a nested hash of option meta data _* see example below *_)
-* `update`            A block with your update isntructions
 
 ```ruby
 class MyRoll < Yuyi::Roll
@@ -51,14 +52,18 @@ class MyRoll < Yuyi::Roll
   available_options(
     :version => {
       :description => 'The specific version you would like to install',
-      :example => '1.0', # optional
-      :default => '2.0' # optional
-      :required => true # optional - shows option in red
+      :example => '1.0',  # optional
+      :default => '2.0'   # optional
+      :required => true   # optional - shows option in red
     }
   )
 
   install do
     run 'brew install my_roll'
+  end
+
+  install do
+    run 'brew uninstall my_roll'
   end
 
   update do
@@ -76,7 +81,5 @@ end
 * setup (post suite install tasks)
 * Enforce required options
 * New roll generator
-* Install script interacts with /bin/fire arguments
-* Roll specific optional `uninstall` method
 
 [.](http://www.comedycentral.com/video-clips/3myds9/upright-citizens-brigade-sushi-chef)

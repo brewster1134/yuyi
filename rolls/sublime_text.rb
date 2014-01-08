@@ -17,6 +17,16 @@ class SublimeText < Yuyi::Roll
     end
   end
 
+  uninstall do
+    if options[:version] == 2
+      run 'brew cask uninstall sublime-text'
+    else
+      run 'brew cask uninstall sublime-text-3'
+    end
+  end
+
+  update { install }
+
   installed? do
     if options[:version] != 2
       `brew cask list` =~ /sublime-text3/

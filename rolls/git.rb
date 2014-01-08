@@ -5,6 +5,10 @@ class Git < Yuyi::Roll
     run 'brew install git'
   end
 
+  uninstall do
+    run 'brew uninstall git'
+  end
+
   update do
     run 'brew upgrade git'
   end

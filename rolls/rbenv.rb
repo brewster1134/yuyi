@@ -15,6 +15,16 @@ class Rbenv < Yuyi::Roll
     end
   end
 
+  uninstall do
+    run 'brew uninstall rbenv ruby-build'
+
+    # Remove initialization to shell
+    delete_from_file '~/.bash_profile', "# #{title}", 'eval "$(rbenv init -)"'
+    if on_the_menu? :zsh
+      delete_from_file '~/.zshrc', "# #{title}", 'eval "$(rbenv init -)"'
+    end
+  end
+
   update do
     run 'brew upgrade rbenv ruby-build'
   end

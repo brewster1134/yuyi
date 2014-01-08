@@ -10,6 +10,8 @@ class HerokuToolbelt < Yuyi::Roll
     run 'brew cask uninstall heroku-toolbelt'
   end
 
+  update { install }
+
   installed? do
     `brew cask list` =~ /heroku-toolbelt/
   end

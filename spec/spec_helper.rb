@@ -21,6 +21,7 @@ RSpec.configure do |config|
   end
 end
 
+# Allow true/false to respond to Boolean class
 module Boolean; end
 class TrueClass; include Boolean; end
 class FalseClass; include Boolean; end

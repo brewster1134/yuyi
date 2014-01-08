@@ -35,6 +35,12 @@ class Xcode < Yuyi::Roll
     run 'osascript Install_XCode.applescript'
   end
 
+  uninstall do
+    FileUtils.rm_rf '/Applications/Xcode.app'
+  end
+
+  update { install }
+
   installed? do
     command? 'xcode-select'
   end

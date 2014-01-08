@@ -149,10 +149,24 @@ module Yuyi::Cli
   end
 
   def write_to_file file, *text
-    File.open(File.expand_path(file), File::WRONLY|File::CREAT|File::APPEND) do |file|
+    File.open(File.expand_path(file), 'a') do |file|
       file.write text * "\n"
       file.write "\n"
     end
+  end
+
+  def delete_from_file file, *text
+    # get file text
+    new_text = File.read(File.expand_path(file))
+
+    # iterate through text and remove it
+    text.each do |t|
+      regex = /^.*#{Regexp.escape(t)}.*\n/
+      new_text.gsub!(regex, '')
+    end
+
+    # write new text back to file
+    File.open(File.expand_path(file), 'w') { |f| f.write(new_text) }
   end
 
   def command? command
@@ -189,7 +203,7 @@ private
     menu = nil
     until menu
       say 'Navigate to the menu you want to order from...', :type => :success
-      menu = ask '...or just press enter to look for `.yuyi_menu.yml` in your home folder.', :readline => true, :color => 36 do |path|
+      menu = ask "...or just press enter to load `#{Yuyi::DEFAULT_ROLL_PATH}`", :readline => true, :color => 36 do |path|
         Yuyi::Menu.new(path.empty? ? Yuyi::DEFAULT_ROLL_PATH : path)
         Yuyi::Menu.object
       end

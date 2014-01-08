@@ -5,6 +5,12 @@ class Vagrant < Yuyi::Roll
     run 'brew cask install vagrant'
   end
 
+  uninstall do
+    run 'brew cask uninstall vagrant'
+  end
+
+  update { install }
+
   installed? do
     `brew cask list` =~ /vagrant/
   end

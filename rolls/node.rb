@@ -5,6 +5,10 @@ class Node < Yuyi::Roll
     run 'brew install node'
   end
 
+  uninstall do
+    run 'brew uninstall node'
+  end
+
   update do
     run 'brew upgrade maven'
   end

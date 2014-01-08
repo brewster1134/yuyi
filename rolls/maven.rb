@@ -5,6 +5,10 @@ class Maven < Yuyi::Roll
     run 'brew install maven'
   end
 
+  uninstall do
+    run 'brew uninstall maven'
+  end
+
   update do
     run 'brew upgrade maven'
   end

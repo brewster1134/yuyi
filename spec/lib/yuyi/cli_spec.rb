@@ -129,8 +129,28 @@ describe Yuyi::Cli do
     end
 
     it 'should accept multiple text arguments' do
-      Yuyi.write_to_file 'test', 'array_one', 'array_two'
-      expect(File.open('test').read).to eq "foo\narray_one\narray_two\n"
+      Yuyi.write_to_file 'test', 'arg1', 'arg2'
+      expect(File.open('test').read).to eq "foo\narg1\narg2\n"
+    end
+  end
+
+  describe '.delete_from_file' do
+    before do
+      Yuyi.write_to_file 'test', 'foo', 'remove1', 'remove2', 'bar'
+    end
+
+    after do
+      FileUtils.rm 'test'
+    end
+
+    it 'should remove a line from the file' do
+      Yuyi.delete_from_file 'test', 'remove1'
+      expect(File.open('test').read).to eq "foo\nremove2\nbar\n"
+    end
+
+    it 'should accept multiple text arguments' do
+      Yuyi.delete_from_file 'test', 'remove1', 'remove2'
+      expect(File.open('test').read).to eq "foo\nbar\n"
     end
   end
 

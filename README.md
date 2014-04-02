@@ -77,6 +77,7 @@ end
 ```
 
 ### TODO
+* sourceable rolls
 * Display roll version
 * setup (post suite install tasks)
 * Enforce required options

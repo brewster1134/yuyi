@@ -16,9 +16,12 @@ Nothing! Well thats not entirely true... the dependencies are already available 
 #### Example Menu
 
 ```yaml
-google_chrome:
-ruby:
-  versions: ['2.0.0-p353']
+sources:
+  yuyi: https://github.com/brewster1134/Yuyi-Rolls.git
+rolls:
+  google_chrome:
+  ruby:
+    versions: ['2.0.0-p353']
 ```
 
 Make sure to include a colon (:) at the end of each roll name.
@@ -39,31 +42,31 @@ If a roll accepts arguments, indent the key/value pairs below the roll name.  Yo
 * `installed?`    A block to tests if your roll is already installed or not
 
 ###### _optional_
-* `dependencies`      Declare dependencies (comma separated symbols) that your roll depends on
-* `add_dependencies`  Add dependencies conditionally at runtime (comma separated symbols)
-* `available_options` A hash of options (and a nested hash of option meta data _* see example below *_)
+* `dependencies`  Declare dependencies (supports multiple arguments) that your roll depends on
+* `options`       A hash of options (and a nested hash of option meta data _* see example below *_)
+
+###### _available methods_
+* `title`             Returns a string of the roll title.
+* `options`           Returns the roll options.
+* `run`               This will run a system command.
+    * `command` A string of the command you wish to run
+    * `verbose` If true, will show formatted output & errors.  This is enabled when running yuyi with the `-V` or `--VERBOSE` flag
+* `command?`          Returns true or false if a command succeeds or fails.  Good for using in the `installed?` block
+* `write_to_file`     Will add lines of text to a file.  Good for using in the `install` block. Accepts multiple string arguments to be written as separate lines.
+* `delete_from_file`  Will remove lines of text to a file.  Good for using in the `uninstall` block. Accepts multiple string arguments to be written as separate lines.
 
 ```ruby
 class MyRoll < Yuyi::Roll
-  dependencies :homebrew
-
-  add_dependencies :hombrew_cask if options[:version] == '2.0'
-
-  available_options(
-    :version => {
-      :description => 'The specific version you would like to install',
-      :example => '1.0',  # optional
-      :default => '2.0'   # optional
-      :required => true   # optional - shows option in red
-    }
-  )
-
   install do
-    run 'brew install my_roll'
+    run 'brew install my_roll', :verbose => true
+
+    write_to_file '~/.bash_profile', "# #{title}"
   end
 
-  install do
+  uninstall do
     run 'brew uninstall my_roll'
+
+    delete_from_file '~/.bash_profile', "# #{title}"
   end
 
   update do
@@ -71,8 +74,25 @@ class MyRoll < Yuyi::Roll
   end
 
   installed? do
+    # simply check for a command
+    command? 'brew'
+
+    # or check the output of a command
+    # using `run` will return true or false, so use
     `brew list` =~ /myroll/
   end
+
+  dependencies :homebrew, :foo
+  dependencies :hombrew_cask if options[:version] == '2.0' # add dependencies conditionally
+
+  options(
+    :version => {
+      :description => 'The specific version you would like to install',
+      :example => '1.0',  # optional
+      :default => '2.0',  # optional
+      :required => true   # optional - shows option in red
+    }
+  )
 end
 ```
 
@@ -81,6 +101,7 @@ end
 * Display roll version
 * setup (post suite install tasks)
 * Enforce required options
-* New roll generator
+* New roll generator (use new!)
+* DOCS!
 
 [.](http://www.comedycentral.com/video-clips/3myds9/upright-citizens-brigade-sushi-chef)

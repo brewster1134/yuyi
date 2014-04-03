@@ -3,4 +3,4 @@ $: << File.dirname(__FILE__) + '/../lib'
 
 require 'yuyi'
 
-Yuyi.start $*
+Yuyi.init ARGV

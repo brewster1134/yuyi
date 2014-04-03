@@ -1,12 +1,15 @@
-class Yuyi; end
+class Yuyi
+  NAME = 'Yuyi'
+  VERSION = '0.1.0'
+  DEFAULT_MENU = File.expand_path('~/.yuyi_menu')
+end
 
 require 'yuyi/cli'
-require 'yuyi/config'
+require 'yuyi/core'
 require 'yuyi/menu'
-require 'yuyi/objects'
 require 'yuyi/roll'
+require 'yuyi/source'
 
 class Yuyi
   extend Yuyi::Cli
-  include Yuyi::Config
 end

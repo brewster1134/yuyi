@@ -30,7 +30,15 @@ class Hash
   def deep_transform_keys! &block
     keys.each do |key|
       value = delete(key)
-      self[yield(key)] = value.is_a?(Hash) ? value.deep_transform_keys!(&block) : value
+
+      self[yield(key)] = case value
+      when Hash
+        value.deep_transform_keys!(&block)
+      when Array
+        value.each{ |e| e.deep_transform_keys!(&block) }
+      else
+        value
+      end
     end
     self
   end

@@ -3,8 +3,6 @@ require 'spec_helper'
 options = Yuyi::Cli::OPTIONS.keys
 
 describe Yuyi::Cli do
-  let(:option_flags) { options.map{ |option| option.to_s.chars.first }}
-
   before do
     class CliTest; extend Yuyi::Cli; end
     CliTest.stub(:say)
@@ -12,31 +10,28 @@ describe Yuyi::Cli do
 
   describe 'OPTIONS' do
     it 'should have options with a unique first character' do
-      expect(option_flags.uniq.length).to eq options.length
+      flags = options.map{ |option| option.to_s.chars.first }
+
+      expect(flags.uniq.length).to eq options.length
     end
   end
 
-  describe '.start' do
+  describe '#init' do
     context 'without arguments' do
       before do
-        Yuyi::Menu.stub(:load)
-        CliTest.stub(:get_menu)
-        CliTest.start []
+        CliTest.stub :start
+        CliTest.init []
       end
 
-      after do
-        Yuyi::Menu.unstub(:load)
-      end
-
-      it 'should load rolls' do
-        expect(Yuyi::Menu).to have_received(:load)
+      it 'should call start' do
+        expect(CliTest).to have_received(:start)
       end
     end
 
     context 'with an invalid argument' do
       before do
         CliTest.stub :help
-        CliTest.start 'foo'
+        CliTest.init 'foo'
       end
 
       it 'should call the help method' do
@@ -44,75 +39,110 @@ describe Yuyi::Cli do
       end
     end
 
-    context 'with arguments' do
+    context 'with the respective argument' do
       options.each do |option|
         before do
-          CliTest.stub option
+          CliTest.stub option.to_s.downcase.to_sym
 
           # Test both option forms
-          CliTest.start "-#{option.to_s.chars.first}"
-          CliTest.start "--#{option}"
+          CliTest.init "-#{option.to_s.chars.first}"
+          CliTest.init "--#{option}"
         end
 
-        it "should call #{option} method" do
-          expect(CliTest).to have_received(option).twice
+        the "#{option} option is valid" do
+          expect(CliTest).to have_received(option.to_s.downcase.to_sym).twice
         end
       end
     end
   end
 
-  describe '.get_menu' do
+  describe '#say' do
     before do
-      stub_const 'Yuyi::DEFAULT_ROLL_PATH', 'spec/fixtures/menu_load.yml'
-      Yuyi::Roll.any_instance.stub(:installed?).and_return(true)
-      Yuyi::Menu.any_instance.stub(:require_rolls)
-      Yuyi::Menu.class_var :classes, {}
+      CliTest.stub(:say).and_call_original
+      STDOUT.stub(:puts)
     end
 
     after do
-      Yuyi::Roll.any_instance.unstub(:installed?)
-      Yuyi::Menu.any_instance.unstub(:require_rolls)
-      Readline.unstub(:readline)
+      STDOUT.unstub(:puts)
     end
 
-    after :each do
-      Yuyi.send(:get_menu)
+    it 'should output the correct type' do
+      expect(STDOUT).to receive(:puts).with("\e[31mfoo type\e[0m")
+      CliTest.say 'foo type', :type => :fail
     end
 
-    context 'when no input is given' do
-      before do
-        Readline.stub(:readline).and_return('')
-      end
-
-      it 'should load the default menu' do
-        expect(Yuyi::Menu).to receive(:new).with(Yuyi::DEFAULT_ROLL_PATH).and_call_original
-      end
+    it 'should output the correct color' do
+      expect(STDOUT).to receive(:puts).with("\e[123mfoo color\e[0m")
+      CliTest.say 'foo color', :color => 123
     end
 
-    context 'when an invalid path is given' do
-      before do
-        Readline.stub(:readline).and_return('foo', 'bar', '')
-      end
-
-      it 'should request input again' do
-        expect(Readline).to receive(:readline).exactly(3).times
-      end
+    it 'should output the correct justification & padding' do
+      expect(STDOUT).to receive(:puts).with(' foo justify padding  ')
+      CliTest.say 'foo justify padding', :justify => :center, :padding => 22
     end
 
-    context 'when a custom path is given' do
-      before do
-        Readline.stub(:readline).and_return('spec/fixtures/menu_load.yml')
-      end
+    it 'should output the correct indentation' do
+      expect(STDOUT).to receive(:puts).with('  foo indent')
+      CliTest.say 'foo indent', :indent => 2
+    end
+  end
 
-      it 'should load the menu' do
-        expect(Yuyi::Menu).to receive(:new).with('spec/fixtures/menu_load.yml').and_call_original
+  describe '#ask' do
+    before do
+      CliTest.stub(:say)
+      STDIN.stub(:gets).and_return 'foo'
+    end
+
+    after do
+      STDIN.unstub(:gets)
+    end
+
+    it 'should pass the user input to the block' do
+      CliTest.ask 'why?' do |response|
+        expect(response).to eq 'foo'
       end
     end
   end
 
-  describe '.write_to_file' do
+  describe '#present_options' do
     before do
-      Yuyi.write_to_file 'test', 'foo'
+      @output = ''
+      CliTest.stub :say do |o, p|
+        @output << (o || '')
+      end
+
+      class PresentOptionsRoll
+        def title; :foo_title; end
+        def file_name; :foo_filename; end
+        def options
+          {
+            :option_foo => {
+              :description => 'foo description',
+              :example => '1.0',
+              :default => '2.0',
+              :required => true
+            }
+          }
+        end
+      end
+      @present_options_roll = PresentOptionsRoll.new
+
+      CliTest.present_options @present_options_roll
+    end
+
+    it 'should output the neccessary information' do
+      expect(@output).to include 'foo_title'
+      expect(@output).to include 'foo_filename'
+      expect(@output).to include 'foo description'
+      expect(@output).to include '1.0'
+      expect(@output).to include '2.0'
+      expect(@output).to include "\e[31m" # make sure something is red (required)
+    end
+  end
+
+  describe '#write_to_file' do
+    before do
+      CliTest.write_to_file 'test', 'foo'
     end
 
     after do
@@ -124,19 +154,19 @@ describe Yuyi::Cli do
     end
 
     it 'should append to the file' do
-      Yuyi.write_to_file 'test', 'bar'
+      CliTest.write_to_file 'test', 'bar'
       expect(File.open('test').read).to eq "foo\nbar\n"
     end
 
     it 'should accept multiple text arguments' do
-      Yuyi.write_to_file 'test', 'arg1', 'arg2'
+      CliTest.write_to_file 'test', 'arg1', 'arg2'
       expect(File.open('test').read).to eq "foo\narg1\narg2\n"
     end
   end
 
-  describe '.delete_from_file' do
+  describe '#delete_from_file' do
     before do
-      Yuyi.write_to_file 'test', 'foo', 'remove1', 'remove2', 'bar'
+      CliTest.write_to_file 'test', 'foo', 'remove1', 'remove2', 'bar'
     end
 
     after do
@@ -144,20 +174,116 @@ describe Yuyi::Cli do
     end
 
     it 'should remove a line from the file' do
-      Yuyi.delete_from_file 'test', 'remove1'
+      CliTest.delete_from_file 'test', 'remove1'
       expect(File.open('test').read).to eq "foo\nremove2\nbar\n"
     end
 
     it 'should accept multiple text arguments' do
-      Yuyi.delete_from_file 'test', 'remove1', 'remove2'
+      CliTest.delete_from_file 'test', 'remove1', 'remove2'
       expect(File.open('test').read).to eq "foo\nbar\n"
     end
   end
 
-  describe '.command?' do
+  describe '#command?' do
     it 'should return true if command exists' do
-      expect(Yuyi.command?('ruby')).to eq true
-      expect(Yuyi.command?('rubyfoo')).to eq false
+      expect(CliTest.command?('ruby -v')).to eq true
+    end
+
+    it 'should return false if command does not exist' do
+      expect(CliTest.command?('rubyfoo')).to eq false
+    end
+  end
+
+  describe '#get_menu' do
+    before do
+      stub_const 'Yuyi::DEFAULT_MENU', 'spec/fixtures/menu.yaml'
+    end
+
+    after do
+      CliTest.send(:get_menu)
+      Readline.unstub(:readline)
+      Yuyi::Menu.unstub(:new)
+    end
+
+    context 'when no input is given' do
+      before do
+        Readline.stub(:readline).and_return('')
+        Yuyi::Menu.stub(:new).and_return(true)
+      end
+
+      it 'should load the default menu' do
+        expect(Yuyi::Menu).to receive(:new).with('spec/fixtures/menu.yaml')
+      end
+    end
+
+    context 'when an invalid path is given' do
+      before do
+        Readline.stub(:readline).and_return('foo', 'bar', '')
+        Yuyi::Menu.stub(:new).and_return(false, false, true)
+      end
+
+      it 'should request input again' do
+        expect(Readline).to receive(:readline).exactly(3).times
+      end
+    end
+
+    context 'when a custom path is given' do
+      before do
+        Readline.stub(:readline).and_return('spec/fixtures/menu.yaml')
+        Yuyi::Menu.stub(:new).and_return(true)
+      end
+
+      it 'should load the menu' do
+        expect(Yuyi::Menu).to receive(:new).with('spec/fixtures/menu.yaml')
+      end
+    end
+  end
+
+  # argument methods
+  #
+  describe '#help' do
+    before do
+      stub_const 'Yuyi::Cli::OPTIONS', {
+        :FOO => 'doo',
+        :bar => 'boo'
+      }
+
+      @output = ''
+      CliTest.stub :say do |o, p|
+        @output << (o || '')
+      end
+
+      CliTest.send :help
+    end
+
+    it 'should return options' do
+      expect(@output).to include '-F'
+      expect(@output).to include '--FOO'
+      expect(@output).to include 'doo'
+      expect(@output).to include '-b'
+      expect(@output).to include '--bar'
+      expect(@output).to include 'boo'
+    end
+  end
+
+  describe '#list' do
+    before do
+      @output = ''
+      CliTest.stub :say do |o, p|
+        @output << (o || '')
+      end
+
+      Readline.stub(:readline).and_return 'spec/fixtures/menu.yaml'
+
+      CliTest.send :list
+    end
+
+    after do
+      Readline.unstub(:readline)
+    end
+
+    it 'should return all rolls' do
+      expect(@output).to include 'foo_roll'
     end
   end
 end

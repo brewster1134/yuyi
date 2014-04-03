@@ -1,101 +1,104 @@
 class Yuyi::Roll
-  # Add to global collection of rolls
+
+  # DSL API Methods
   #
-  def self.inherited roll_class
-    # convert class name to a human readble title-cased string
-    roll_class.title = roll_class.to_s.gsub(/(?=[A-Z])/, ' ').strip
-
-    # convert absolute path to a file name symbol
-    roll_class.file_name = file_name = caller.first[/[a-z_]+?(?=\.rb)/].to_sym
-
-    Yuyi::Menu.add_roll file_name, roll_class
-  end
-
-  def self.require_dependencies
-    @dependencies.each { |roll| Yuyi::Menu.require_roll roll }
-  end
-
-  # DSL Methods called when each roll is required
-  # These act as meta data for the roll class
-  #
-  def self.title= title
+  def self.title title = nil
     @title ||= title
   end
-  def self.title; @title; end
-  def title; self.class.title; end
 
-  def self.file_name= file_name
+  def self.file_name file_name = nil
     @file_name ||= file_name
-  end
-  def self.file_name; @file_name; end
-
-  def self.available_options available_options = {}
-    @available_options ||= available_options
-  end
-  def available_options; self.class.available_options; end
-
-  def self.dependencies *dependencies
-    @dependencies ||= dependencies.flatten
-    require_dependencies
-  end
-  def dependencies; self.class.dependencies; end
-
-  def self.add_dependencies *dependencies_array
-    # Create @dependencies if it doesnt exist yet
-    # This prevent needing to call `dependencies` on a roll if all dependencies are dynamic
-    @dependencies ||= []
-
-    # Merge dynamic dependencies with static dependencies with bitwise operator
-    @dependencies |= dependencies_array
-
-    # Require dynamic dependencies
-    dependencies.each { |d| Yuyi::Menu.require_roll d }
-  end
-
-  def self.installed? &block
-    @installed ||= block
-  end
-  def installed?
-    !!instance_eval(&self.class.installed?)
   end
 
   def self.install &block
     @install ||= block
   end
-  def install
-    instance_eval(&self.class.install)
+
+  def self.uninstall &block
+    @uninstall ||= block
   end
 
   def self.update &block
     @update ||= block
   end
-  def update
-    instance_eval(&self.class.update)
+
+  def self.installed? &block
+    @installed ||= block
   end
 
-  def self.uninstall &block
-    @uninstall ||= block
+  def self.dependencies *dependencies
+    @dependencies ||= []
+
+    unless dependencies.empty?
+      @dependencies |= dependencies
+      require_dependencies
+    end
+
+    @dependencies
   end
+
+  def self.options arg = {}
+    @options ||= arg
+  end
+
+  def title; self.class.title; end
+  def file_name; self.class.file_name; end
+
+  def write_to_file file, *text
+    Yuyi.write_to_file file, *text
+  end
+
+  def delete_from_file file, *text
+    Yuyi.delete_from_file file, *text
+  end
+
+  def options
+    Yuyi::Menu.options self
+  end
+
+private
+
+  # Add to global collection of rolls
+  #
+  def self.inherited klass
+    # convert class name to a human readble title-cased string
+    klass.title klass.to_s.gsub(/(?=[A-Z])/, ' ').strip
+
+    # convert absolute path to a file name symbol
+    klass.file_name caller.first[/[a-z_]+?(?=\.rb)/].to_sym
+
+    Yuyi::Menu.add_roll klass.file_name, klass
+  end
+
+  def self.require_dependencies
+    @dependencies.each do |roll|
+      unless Yuyi::Menu.on_the_menu? roll
+        Yuyi::Menu.find_roll roll
+      end
+    end
+  end
+
+  def install
+    instance_eval(&self.class.install)
+  end
+
   def uninstall
     instance_eval(&self.class.uninstall)
   end
 
-  # Get the latest options from the menu or return an empty object
-  #
-  def self.options
-    options = Yuyi::Menu.object[file_name] || {}
-  end
-  def options; self.class.options; end
-
-  def self.present_options
-    options = false
-    unless available_options.empty?
-      Yuyi.present_options self
-      options = true
-    end
-    options
+  def update
+    instance_eval(&self.class.update)
   end
 
+  def installed?
+    !!instance_eval(&self.class.installed?)
+  end
+
+  def dependencies
+    self.class.dependencies
+  end
+
+  # Helpers for Yuyi Cli methods
   def say *args; Yuyi.say *args; end
   def run *args; Yuyi.run *args; end
   def command? *args; Yuyi.command? *args; end
@@ -104,16 +107,15 @@ class Yuyi::Roll
   #
   def initialize
     if installed?
-      Yuyi.say "-= #{title} already installed", :type => :warn
       if options[:uninstall]
-        Yuyi.say "-= Uninstalling #{title}...", :type => :success
+        Yuyi.say "🍣\s Uninstalling #{title}...", :type => :success
         uninstall
       else
-        Yuyi.say '-= Installing Updates', :type => :success, :indent => 3
+        Yuyi.say "🍣\s Updating #{title}", :type => :success
         update
       end
     else
-      Yuyi.say "-= Installing #{title}...", :type => :success
+      Yuyi.say "🍣\s Installing #{title}...", :type => :success
       install
     end
     Yuyi.say

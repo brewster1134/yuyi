@@ -1,0 +1,5 @@
+sources:
+  yuyi: spec/fixtures/foo_source.zip
+rolls:
+  foo_roll:
+    foo: bar

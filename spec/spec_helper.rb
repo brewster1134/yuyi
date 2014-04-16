@@ -6,6 +6,8 @@ $: << File.expand_path('../fixtures', __FILE__)
 require 'yuyi'
 
 RSpec.configure do |config|
+  config.alias_example_to :the
+
   config.treat_symbols_as_metadata_keys_with_true_values = true
   config.run_all_when_everything_filtered = true
   config.filter_run :focus
@@ -27,11 +29,19 @@ class TrueClass; include Boolean; end
 class FalseClass; include Boolean; end
 
 class Object
-  def class_var class_var, value = nil
-    if value
-      self.send(:class_variable_set, :"@@#{class_var}", value)
+  def var var, value = nil
+    if self.instance_of? Class
+      if value
+        self.send(:class_variable_set, :"@@#{var}", value)
+      else
+        self.send(:class_variable_get, :"@@#{var}")
+      end
     else
-      self.send(:class_variable_get, :"@@#{class_var}")
+      if value
+        self.send(:instance_variable_set, :"@#{var}", value)
+      else
+        self.send(:instance_variable_get, :"@#{var}")
+      end
     end
   end
 end

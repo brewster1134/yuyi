@@ -1,8 +1,5 @@
 require 'spec_helper'
 
-describe Array do
-end
-
 describe Hash do
   describe '.deep_symbolize_keys!' do
     let(:hash) {{ 'foo' => 'bar', 'nested' => { 'nestedkey' => 'nestedvalue' }}}

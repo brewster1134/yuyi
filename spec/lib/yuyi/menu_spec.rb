@@ -1,101 +1,162 @@
 require 'spec_helper'
 
 describe Yuyi::Menu do
-  describe '.initialize' do
-    let(:menu) { Yuyi::Menu.new }
+  before do
 
+    # stub requring a roll
+    # we need to initialize multiple menus, but the roll will only be required once (and therefore the inherited method will once run once)
+    Yuyi::Menu.any_instance.stub(:require_roll)
+    @menu = Yuyi::Menu.new 'spec/fixtures/menu.yaml'
+
+    # mock the rolls variable since we arent requiring any rolls
+    @menu.var :rolls, { :foo_roll => 'FooRoll' }
+  end
+
+  after do
+    Yuyi::Menu.any_instance.unstub(:require_roll)
+  end
+
+  describe '#initialize' do
+    it 'should set the instance class var' do
+      expect(Yuyi::Menu.var(:instance)).to eq @menu
+    end
+
+    it 'should set the path var' do
+      expect(@menu.var(:path)).to eq 'spec/fixtures/menu.yaml'
+    end
+
+    it 'should set the object var' do
+      expect(@menu.var(:object)[:sources][:yuyi]).to eq 'spec/fixtures/foo_source.zip'
+      expect(@menu.var(:object)[:rolls][:foo_roll]).to eq({ :foo => 'bar' })
+    end
+
+    it 'should set the sources var' do
+      expect(@menu.var(:sources)[:yuyi]).to be_a Yuyi::Source
+    end
+  end
+
+  describe '#load_from_file' do
     before do
-      Yuyi::Menu.stub(:load).and_return({:menu => 'foo'})
-      Yuyi::Menu.any_instance.stub(:require_rolls)
-      Yuyi::Menu.any_instance.stub(:present_options)
+      @menu.var :path, 'spec/fixtures/menu2.yaml'
+      @menu.send :load_from_file
     end
 
-    after do
-      Yuyi::Menu.unstub(:load)
-      Yuyi::Menu.any_instance.unstub(:require_rolls)
-      Yuyi::Menu.any_instance.unstub(:present_options)
+    it 'should reload the menu' do
+      expect(@menu.var(:object)[:rolls][:foo_roll]).to eq({ :bar => 'foo' })
     end
+  end
 
-    it 'should set the object class var' do
-      expect(menu.class.class_var(:object)).to eq({:menu => 'foo'})
-    end
+  describe '#find_roll' do
+    context 'when no roll is found' do
+      before do
+        class TestSource; end
+        TestSource.stub(:available_rolls).and_return [:foo_roll]
+        @menu.var :sources, { :foo_source => TestSource }
+        @menu.var :object, { :rolls => { :foo_roll => nil }, :sources => { :foo_source => nil }}
+      end
 
-    it 'should call other methods' do
-      expect(menu).to have_received(:require_rolls)
-      expect(menu).to have_received(:present_options)
-    end
-
-    context 'when no path is specified' do
-      it 'should call .load with the default path' do
-        expect(menu.class.path).to eq Yuyi::DEFAULT_ROLL_PATH
+      it 'should not attempt to require a roll' do
+        expect(@menu).to_not receive(:require_roll)
+        @menu.send :find_roll, :no_roll
       end
     end
 
-    context 'when a path is specified' do
-      let(:menu) { Yuyi::Menu.new 'foo' }
+    context 'when a source is specified' do
+      before do
+        @menu.var :object, { :rolls => { :foo_roll => { :source => 'foo_source' }}}
+        @menu.send :find_roll, :foo_roll
+      end
 
-      it 'should call .load with the custom path' do
-        expect(menu.class.path).to eq('foo')
+      it 'should require the specific roll' do
+        expect(@menu).to have_received(:require_roll).once.with(:foo_roll, 'foo_source/foo_roll')
+      end
+    end
+
+    context 'when no source is specified' do
+      before do
+        class TestSourceA; end
+        class TestSourceB; end
+        TestSourceA.stub(:available_rolls).and_return({ :foo_roll => { :require_path => 'foo_roll' }})
+        TestSourceB.stub(:available_rolls).and_return({ :bar_roll => { :require_path => 'bar_roll' }})
+
+        @menu.var :object, {
+          :rolls => { :bar_roll => nil },
+          :sources => {
+            :foo_source => nil,
+            :bar_source => nil
+          }
+        }
+
+        @menu.var :sources, {
+          :foo_source => TestSourceA,
+          :bar_source => TestSourceB
+        }
+
+      end
+
+      it 'should require the first roll found' do
+        expect(@menu).to receive(:require_roll).once.with(:bar_roll, 'bar_roll')
+        @menu.send :find_roll, :bar_roll
       end
     end
   end
 
-  describe 'self.load' do
-    context 'when path is invalid' do
-      before do
-        Yuyi::Menu.class_var :path, 'foo'
-      end
-
-      it 'should have a nil object' do
-        expect(Yuyi::Menu.load).to be_nil
-      end
-    end
-
-    context 'when path is valid' do
-      before do
-        Yuyi::Menu.class_var :path, 'spec/fixtures/menu_load.yml'
-      end
-
-      it 'should set object with symbolized keys' do
-        expect(Yuyi::Menu.load).to eq({ :menu_load => { :foo => 'bar' }})
-      end
-    end
-  end
-
-  describe 'self.on_the_menu?' do
+  describe '#on_the_menu?' do
     before do
-      Yuyi::Menu.class_var :classes, { :foo => 'bar' }
+      @menu.var :rolls, { :foo => nil }
     end
 
     it 'should return true if on the menu' do
-      expect(Yuyi::Menu.on_the_menu?(:foo)).to be_true
+      expect(@menu.send(:on_the_menu?, :foo)).to be_true
     end
   end
 
-  describe 'self.add_roll' do
+  describe '#add_roll' do
     before do
       class MenuAddRollRoll; end
-      Yuyi::Menu.add_roll :menu_add_roll_roll, MenuAddRollRoll
+      MenuAddRollRoll.stub(:options)
+
+      @menu.var :object, { :rolls => { :menu_add_roll_roll => 'foo_option' }}
+
+      @menu.send :add_roll, :menu_add_roll_roll, MenuAddRollRoll
     end
 
     it 'should add the roll to the class var' do
-      expect(Yuyi::Menu.class_var(:classes)[:menu_add_roll_roll]).to eq MenuAddRollRoll
+      expect(@menu.var(:rolls)[:menu_add_roll_roll]).to eq MenuAddRollRoll
     end
   end
 
-  describe 'self.sorted' do
+  describe '#sorted_rolls' do
     before do
-      class DependencyRoll < Yuyi::Roll
-        def self.dependencies; [:foo, :bar]; end
+      class DependencyRoll
+        def dependencies; ['foo', 'bar']; end
       end
       class EmptyDependencyRoll
-        def self.dependencies; []; end
+        def dependencies; []; end
       end
-      Yuyi::Menu.class_var :classes, { :dependency_roll => DependencyRoll, :foo => EmptyDependencyRoll, :bar => EmptyDependencyRoll }
+      @menu.var :rolls, { :dependency_roll => DependencyRoll.new, :foo => EmptyDependencyRoll.new, :bar => EmptyDependencyRoll.new }
     end
 
     it 'should add the roll to the class var' do
-      expect(Yuyi::Menu.sorted.sort_by {|sym| sym.to_s}).to eq([:foo, :bar, :dependency_roll].sort_by {|sym| sym.to_s})
+      expect(@menu.send(:sorted_rolls).sort_by { |sym| sym.to_s }).to eq([:bar, :dependency_roll, :foo])
+    end
+  end
+
+  describe '#order_rolls' do
+    before do
+      class OrderRollsRoll; end
+      @menu.stub(:sorted_rolls).and_return([:foo_roll])
+      @menu.var :rolls, { :foo_roll => OrderRollsRoll }
+      @menu.var :object, {:rolls => { :foo_roll => { :foo => :bar }}}
+    end
+
+    after do
+      @menu.send :order_rolls
+      @menu.unstub :sorted_rolls
+    end
+
+    it 'should initialize a roll with the roll options' do
+      expect(OrderRollsRoll).to receive :new
     end
   end
 end

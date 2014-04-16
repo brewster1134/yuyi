@@ -29,21 +29,29 @@ private
   end
 
   def download_source
-    zip_file = File.join(@tmp_dir, @name.to_s)
+    if File.directory? @url
+      FileUtils.cp_r @url, @tmp_dir
+    else
+      zip_file = File.join(@tmp_dir, @name.to_s)
 
-    # Download the file and save it to the tmp directory
-    open zip_file, 'w' do |save_file|
-      begin
-        save_file << open(@url).read
-      rescue
-        Yuyi.say "Could not open the `#{@name}` source.  Please check that the path is correct.", :type => :fail
-        Yuyi.say "If you continue to have issues, your source server may be down.", :type => :warn
-        return
+      # Download the file and save it to the tmp directory
+      open zip_file, 'w' do |save_file|
+        begin
+          save_file << open(@url).read
+        rescue
+          Yuyi.say "Could not open the `#{@name}` source.  Please check that the path is correct.", :type => :fail
+          Yuyi.say "If you continue to have issues, your source server may be down.", :type => :warn
+          return
+        end
       end
-    end
 
+      unzip_source zip_file
+    end
+  end
+
+  def unzip_source file
     # unzip file
-    unzip = Yuyi.run "/usr/bin/tar -xf #{zip_file} -C #{@tmp_dir}"
+    unzip = Yuyi.run "/usr/bin/tar -xf #{file} -C #{@tmp_dir}"
     if unzip == false
       Yuyi.say "The `#{@name}` source is an unrecognized archive format.", :type => :fail
       Yuyi.say "Make sure it is a format supported by tar (tar, pax, cpio, zip, jar, ar, or ISO 9660 image)", :type => :warn

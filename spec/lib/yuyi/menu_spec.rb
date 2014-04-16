@@ -26,7 +26,7 @@ describe Yuyi::Menu do
     end
 
     it 'should set the object var' do
-      expect(@menu.var(:object)[:sources][:yuyi]).to eq 'spec/fixtures/foo_source.zip'
+      expect(@menu.var(:object)[:sources][:yuyi]).to eq 'spec/fixtures/roll_zip.zip'
       expect(@menu.var(:object)[:rolls][:foo_roll]).to eq({ :foo => 'bar' })
     end
 
@@ -47,20 +47,6 @@ describe Yuyi::Menu do
   end
 
   describe '#find_roll' do
-    context 'when no roll is found' do
-      before do
-        class TestSource; end
-        TestSource.stub(:available_rolls).and_return [:foo_roll]
-        @menu.var :sources, { :foo_source => TestSource }
-        @menu.var :object, { :rolls => { :foo_roll => nil }, :sources => { :foo_source => nil }}
-      end
-
-      it 'should not attempt to require a roll' do
-        expect(@menu).to_not receive(:require_roll)
-        @menu.send :find_roll, :no_roll
-      end
-    end
-
     context 'when a source is specified' do
       before do
         @menu.var :object, { :rolls => { :foo_roll => { :source => 'foo_source' }}}
@@ -91,12 +77,25 @@ describe Yuyi::Menu do
           :foo_source => TestSourceA,
           :bar_source => TestSourceB
         }
-
       end
 
       it 'should require the first roll found' do
         expect(@menu).to receive(:require_roll).once.with(:bar_roll, 'bar_roll')
         @menu.send :find_roll, :bar_roll
+      end
+    end
+
+    context 'when no roll is found' do
+      before do
+        class TestSource; end
+        TestSource.stub(:available_rolls).and_return []
+        @menu.var :object, { :rolls => { :foo_roll => nil }, :sources => { :foo_source => nil }}
+        @menu.var :sources, { :foo_source => TestSource }
+      end
+
+      it 'should not attempt to require a roll' do
+        expect(@menu).to_not receive(:require_roll)
+        @menu.send :find_roll, :no_roll
       end
     end
   end

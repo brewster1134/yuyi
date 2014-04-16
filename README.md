@@ -17,6 +17,7 @@ Nothing! Well thats not entirely true... the dependencies are already available 
 
 ```yaml
 sources:
+  local: ~/Documents/Rolls
   yuyi: https://github.com/brewster1134/Yuyi-Rolls.git
 rolls:
   google_chrome:

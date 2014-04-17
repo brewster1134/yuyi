@@ -10,7 +10,7 @@ describe Yuyi::Roll do
     class TestRoll < Yuyi::Roll
       install {}
       uninstall {}
-      update {}
+      upgrade {}
       installed? {}
       dependencies :foo
       options({
@@ -37,7 +37,7 @@ describe Yuyi::Roll do
       class TestInheritRoll < Yuyi::Roll
         install {}
         uninstall {}
-        update {}
+        upgrade {}
         installed? {}
       end
       expect(Yuyi::Menu).to have_received(:add_roll).with :roll_spec, TestInheritRoll
@@ -65,8 +65,8 @@ describe Yuyi::Roll do
       expect(TestRoll.uninstall).to be_a Proc
     end
 
-    it 'should respond to .update' do
-      expect(TestRoll.update).to be_a Proc
+    it 'should respond to .upgrade' do
+      expect(TestRoll.upgrade).to be_a Proc
     end
 
     it 'should respond to .installed?' do
@@ -107,7 +107,7 @@ describe Yuyi::Roll do
       it 'should call install' do
         expect_any_instance_of(TestRoll).to receive :install
         expect_any_instance_of(TestRoll).to_not receive :uninstall
-        expect_any_instance_of(TestRoll).to_not receive :update
+        expect_any_instance_of(TestRoll).to_not receive :upgrade
       end
     end
 
@@ -125,19 +125,23 @@ describe Yuyi::Roll do
         it 'should call uninstall' do
           expect_any_instance_of(TestRoll).to_not receive :install
           expect_any_instance_of(TestRoll).to receive :uninstall
-          expect_any_instance_of(TestRoll).to_not receive :update
+          expect_any_instance_of(TestRoll).to_not receive :upgrade
         end
       end
 
-      context 'when uninstall option is not set' do
+      context 'when uninstall option is not set & upgrade is true' do
+        before do
+          Yuyi::Menu.stub(:upgrade).and_return true
+        end
+
         after do
           @roll = TestRoll.new
         end
 
-        it 'should call update' do
+        it 'should call upgrade' do
           expect_any_instance_of(TestRoll).to_not receive :install
           expect_any_instance_of(TestRoll).to_not receive :uninstall
-          expect_any_instance_of(TestRoll).to receive :update
+          expect_any_instance_of(TestRoll).to receive :upgrade
         end
       end
     end

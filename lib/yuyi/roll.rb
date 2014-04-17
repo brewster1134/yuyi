@@ -18,8 +18,8 @@ class Yuyi::Roll
     @uninstall ||= block
   end
 
-  def self.update &block
-    @update ||= block
+  def self.upgrade &block
+    @upgrade ||= block
   end
 
   def self.installed? &block
@@ -86,8 +86,8 @@ private
     instance_eval(&self.class.uninstall)
   end
 
-  def update
-    instance_eval(&self.class.update)
+  def upgrade
+    instance_eval(&self.class.upgrade)
   end
 
   def installed?
@@ -110,9 +110,9 @@ private
       if options[:uninstall]
         Yuyi.say "🍣\s Uninstalling #{title}...", :type => :success
         uninstall
-      else
-        Yuyi.say "🍣\s Updating #{title}", :type => :success
-        update
+      elsif Yuyi::Menu.upgrade
+        Yuyi.say "🍣\s Upgrading #{title}", :type => :success
+        upgrade
       end
     else
       Yuyi.say "🍣\s Installing #{title}...", :type => :success

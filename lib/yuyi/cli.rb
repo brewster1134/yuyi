@@ -50,8 +50,14 @@ module Yuyi::Cli
   # justify:  => [center|ljust|rjust] The type of justification to use
   # padding:  => [integer]            The maximum string size to justify text in
   # indent:   => [integer]            The maximum string size to justify text in
+  # newline:  => [boolean]            True if you want a newline after the output
   #
   def say text = '', args = {}
+    # defaults
+    args = {
+      :newline => true
+    }.merge args
+
     # Justify options
     if args[:justify] && args[:padding]
       text = text.send args[:justify], args[:padding]
@@ -74,7 +80,11 @@ module Yuyi::Cli
       text = (' ' * args[:indent]) + text
     end
 
-    STDOUT.puts text
+    if args[:newline]
+      STDOUT.puts text
+    else
+      STDOUT.print text
+    end
   end
 
   # Accepts the same arguments as #say
@@ -91,7 +101,7 @@ module Yuyi::Cli
     output = if options[:readline]
       Readline.readline(prompt).chomp('/')
     else
-      say prompt, :color => 1
+      say prompt, :color => 1, :newline => false
       STDIN.gets
     end.rstrip
 
@@ -193,6 +203,7 @@ private
   def start
     header
     menu = get_menu
+    menu.confirm_upgrade
     menu.confirm_options
   end
 

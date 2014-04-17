@@ -58,7 +58,7 @@ Dir.chdir install_dir do
 end
 
 # RUN
-`#{install_dir}/bin/fire`
+`#{install_dir}/bin/yuyi`
 
 # CLEANUP
 `rm -rf #{install_dir}`

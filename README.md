@@ -1,5 +1,5 @@
 # Yuyi
-Opinionated automation for installing/uninstalling/updating your machine environment
+Opinionated automation for installing/uninstalling/upgrading your machine environment
 
 ###### Support
 * Mac OS X
@@ -39,7 +39,7 @@ If a roll accepts arguments, indent the key/value pairs below the roll name.  Yo
 * `< Yuyu::Roll`  The roll class needs to inherit from Yuyi::Roll
 * `install`       A block to install a roll
 * `uninstall`     A block to uninstall a roll
-* `update`        A block to update a roll
+* `upgrade`        A block to upgrade a roll
 * `installed?`    A block to tests if your roll is already installed or not
 
 ###### _optional_
@@ -70,7 +70,7 @@ class MyRoll < Yuyi::Roll
     delete_from_file '~/.bash_profile', "# #{title}"
   end
 
-  update do
+  upgrade do
     run 'brew upgrade my_roll'
   end
 
@@ -98,7 +98,7 @@ end
 ```
 
 ### TODO
-* sourceable rolls
+* Upgrading requires an argument
 * Display roll version
 * setup (post suite install tasks)
 * Enforce required options

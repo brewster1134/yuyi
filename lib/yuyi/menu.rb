@@ -18,6 +18,10 @@ class Yuyi::Menu
     @@instance.send :options, roll
   end
 
+  def self.upgrade boolean = false
+    @upgrade ||= boolean
+  end
+
   def sources; @sources; end
 
   # If any rolls on the menu have options, confirm the options before continuing
@@ -40,6 +44,14 @@ class Yuyi::Menu
     order_rolls
   end
 
+  # Ask to check for upgrades
+  #
+  def confirm_upgrade
+    Yuyi.ask('Do you want to check for upgrades for already installed rolls? (Yn)', :type => :warn) do |upgrade|
+      Yuyi::Menu.upgrade(true) if upgrade == 'Y'
+    end
+  end
+
 private
 
   def initialize path = Yuyi::DEFAULT_MENU
@@ -53,7 +65,7 @@ private
     find_rolls
   end
 
-  # Load the file specified in the path and update the object var
+  # Load the file specified in the path and upgrade the object var
   #
   def load_from_file
     @object = begin

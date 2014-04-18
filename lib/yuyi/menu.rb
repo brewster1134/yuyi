@@ -1,181 +1,180 @@
 class Yuyi::Menu
+  @rolls = {}
 
-  # DSL API Methods
+  # DSL Helper methods
   #
-  def self.add_roll file, roll
-    @@instance.send :add_roll, file, roll
-  end
+  def self.instance; @@instance; end
 
-  def self.find_roll roll
-    @@instance.send :find_roll, roll
+  def self.object; @object; end
+  def object; self.class.object; end
+
+  def self.sources; @@instance.sources; end
+  def sources; @sources; end
+
+  def self.rolls; @rolls; end
+  def rolls; self.class.rolls; end
+
+  def self.path
+    @@instance.path
   end
+  def path; @path; end
 
   def self.on_the_menu? roll
-    @@instance.send :on_the_menu?, roll
+    @@instance.on_the_menu? roll
+  end
+
+  def self.find_roll name, options = {}
+    @@instance.find_roll name, options
+  end
+
+  def self.set_sources
+    @@instance.set_sources
+  end
+
+  def self.upgrade? boolean = nil
+    @@instance.upgrade? boolean
   end
 
   def self.options roll
-    @@instance.send :options, roll
+    @@instance.options roll
   end
 
-  def self.upgrade boolean = false
-    @upgrade ||= boolean
-  end
-
-  def sources; @sources; end
-
-  # If any rolls on the menu have options, confirm the options before continuing
+  # Attempt to load a menu from a file path
+  # defaults to previously stored @path value
   #
-  def confirm_options
-    options = false
-    @rolls.values.each do |roll|
-      unless roll.options.empty?
-        Yuyi.present_options roll
-        options = true
-      end
-    end
-
-    if options
-      Yuyi.ask('Hit any key when you have your options set correctly in your menu file', :type => :warn) do
-        load_from_file
-      end
-    end
-
-    order_rolls
-  end
-
-  # Ask to check for upgrades
-  #
-  def confirm_upgrade
-    Yuyi.ask('Do you want to check for upgrades for already installed rolls? (Yn)', :type => :warn) do |upgrade|
-      Yuyi::Menu.upgrade(true) if upgrade == 'Y'
-    end
-  end
-
-private
-
-  def initialize path = Yuyi::DEFAULT_MENU
-    @rolls = {}
-    @path = path
-    @@instance = self
-
-    return unless load_from_file
-
-    download_sources
-    find_rolls
-  end
-
-  # Load the file specified in the path and upgrade the object var
-  #
-  def load_from_file
+  def self.load_from_file path = path
     @object = begin
-      YAML.load(File.open(File.expand_path(@path))).deep_symbolize_keys!
+      YAML.load(File.open(File.expand_path(path))).deep_symbolize_keys!
     rescue
       nil
     end
   end
 
-  # Download all sources on the menu
+  # Add rolls to hash in format of {file_name: RollInstance}
+  # Called from yuyi/roll.rb#self.inherited
   #
-  def download_sources
-    if @object[:sources].empty?
-      Yuyi.say 'No rolls could be found because no sources were set in your menu.'
-      return
-    end
-
-    @sources = {}
-    @object[:sources].each do |name, url|
-      @sources[name] = Yuyi::Source.new name, url
-    end
-
-    @sources
+  def self.add_roll file_name, klass
+    @rolls[file_name] = klass.new
   end
 
-  # Find the rolls on the menu to add
+  # Get/Set upgrade flag
   #
-  def find_rolls
-    @object[:rolls].keys.each do |roll|
-      find_roll roll
-    end
-  end
-
-  # Find the best roll in the source to be added
-  #
-  def find_roll roll
-    # return specific source roll if specified in the menu
-    #
-    if source = (@object[:rolls][roll] || {})[:source]
-      require_roll roll, File.join(source, roll.to_s)
-
-    # look through the sources for the first roll that matches.
-    # sources are listed in the menu in order of priority
-    else
-      @object[:sources].keys.each do |source|
-        if @sources[source].available_rolls.include? roll
-          path = @sources[source].available_rolls[roll][:require_path]
-
-          require_roll roll, path
-          return
-        end
-      end
-    end
-  end
-
-  # Require a single roll
-  #
-  def require_roll roll, path
-    return if on_the_menu? roll
-    begin
-      # Require roll (which will then add its class to the @all_on_menu class var)
-      require path
-    rescue LoadError
-      Yuyi.say "You ordered the '#{roll}' roll off the menu, but we are fresh out...", :type => :fail
-      Yuyi.say 'Check your menu to make sure a source with your roll is listed.', :type => :warn
-      Yuyi.say
-    end
+  def upgrade? boolean = nil
+    @upgrade = boolean.nil? ? @upgrade : boolean
   end
 
   # Check if a roll is on the menu
   #
   def on_the_menu? roll
-    @rolls.keys.include? roll
+    object[:rolls].keys.include? roll
+  end
+
+  # Download & create all sources on the menu
+  #
+  def set_sources
+    if object[:sources].empty?
+      Yuyi.say 'No rolls could be found because no sources were set in your menu.'
+      return
+    end
+
+    @sources = []
+    object[:sources].each do |source|
+      source.each do |name, path|
+        @sources << Yuyi::Source.new(name, path)
+      end
+    end
+
+    @sources
   end
 
   def options roll
-    @object[:rolls][roll.file_name]
-  end
-
-  # Add rolls to hash in format of {file_name: ClassName}
-  # Called from yuyi/roll.rb#self.inherited
-  #
-  def add_roll file, roll
-    @rolls[file] = roll
-  end
-
-  # Get a specific roll
-  #
-  def roll roll
-    @rolls[roll]
-  end
-
-  # Return an array of the topologically sorted rolls from the menu
-  #
-  def sorted_rolls
-    tsort_hash = {}
-
-    @rolls.each do |file_name, roll|
-      tsort_hash[file_name.to_s] = roll.dependencies.map(&:to_s)
-    end
-
-    tsort_hash.tsort.map(&:to_sym)
+    object[:rolls][roll.file_name] || {}
   end
 
   # Initialize all the rolls in order
   #
   def order_rolls
-    sorted_rolls.each do |roll|
-      roll_class = @rolls[roll]
-      roll_class.new
+    sorted_rolls.each do |file_name|
+      rolls[file_name].order
     end
   end
+
+  # Find the best roll in the source to be added
+  #
+  def find_roll name, options = {}
+    options ||= {}
+    # return specific source roll if specified in the menu
+    #
+    if source = options[:source]
+      require_roll name, File.join(source, name.to_s)
+      return
+
+    # look through the sources for the first roll that matches.
+    # sources are listed in the menu in order of priority
+    else
+      sources.each do |source|
+        if path = source.available_rolls[name]
+          require_roll name, path
+          return
+        end
+      end
+    end
+
+    # no roll was found
+    Yuyi.say "You ordered the '#{name}' roll off the menu, but we are fresh out...", :type => :fail
+    Yuyi.say 'Check your menu to make sure a source with your roll is listed.', :type => :warn
+    Yuyi.say
+  end
+
+private
+
+    def initialize path
+      return unless Yuyi::Menu.load_from_file path
+
+      @path = path
+      @@instance = self
+
+      set_sources
+      set_rolls
+    end
+
+    # Create all rolls on the menu
+    #
+    def set_rolls
+      object[:rolls].each do |name, options|
+        find_roll name, options
+      end
+    end
+
+    # Require a single roll
+    #
+    def require_roll name, path
+      # check if already on the roll for when requiring dependencies
+      return if roll_loaded? name
+
+      begin
+        require path
+      rescue LoadError
+        Yuyi.say "There was a problem loading the `#{name}` roll from `#{path}`", :type => :fail
+        Yuyi.say 'If this problem continues, please log an issue on the Yuyi github page.', :type => :warn
+        Yuyi.say
+      end
+    end
+
+    # Check if roll has already been required & loaded
+    #
+    def roll_loaded? roll
+      rolls.keys.include? roll
+    end
+
+    # Return an array of the topologically sorted rolls from the menu
+    #
+    def sorted_rolls
+      tsort_hash = {}
+      rolls.each do |file_name, roll|
+        tsort_hash[file_name.to_s] = roll.dependencies.map(&:to_s)
+      end
+
+      tsort_hash.tsort.map(&:to_sym)
+    end
 end

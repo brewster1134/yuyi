@@ -10,37 +10,38 @@ module Yuyi::Cli
   # Each key must start with a unique letter
   # Flags are automatically created based on the first letter (eg. -h, --help)
   #
-  OPTIONS = {
+  CLI_OPTIONS = {
     :help => 'Shows these options.',
     :list => 'List all rolls available to be included in your menu.',
     :version => 'Shows the current version of Yuyi.',
     :VERBOSE => 'Shows the output of all commands being run'
   }
 
+  # Called by the install script
+  #
   def init args
+    # get the first argument as the command
     command, *rest = *args
 
-    catch :found do
-      # Call options method if valid argument is passed
-      # This checks for the full name or the first letter, proceeded by '--' or '-' respectively
-      OPTIONS.keys.each do |option|
-        if command == "--#{option}" || command == "-#{option.to_s.chars.first}"
-          if rest.empty?
-            send(option.to_s.downcase)
-          else
-            send(option.to_s.downcase, args)
-          end
-          throw :found
+    # Call options method if valid argument is passed
+    # This checks for the full name or the first letter, proceeded by '--' or '-' respectively
+    CLI_OPTIONS.keys.each do |option|
+      if command == "--#{option}" || command == "-#{option.to_s.chars.first}"
+        begin
+          send option.to_s.downcase, rest
+        rescue
+          send option.to_s.downcase
         end
+        return
       end
+    end
 
-      # Show a warning if an invalid argument is passed and then show the help menu
-      if command
-        say 'INVALID ARGUMENT', :type => :warn
-        send :help
-      else
-        start
-      end
+    # Show a warning if an invalid argument is passed and then show the help menu
+    if command
+      say 'INVALID ARGUMENT', :type => :fail
+      send :help
+    else
+      start
     end
   end
 
@@ -109,39 +110,6 @@ module Yuyi::Cli
     yield output
   end
 
-  # Show formatted options
-  #
-  def present_options roll
-    optionHash = {
-      :descriptions => [],
-      :examples => []
-    }
-
-    indent = 2
-    longest_option = roll.options.keys.map(&:to_s).max_by(&:length).length + indent
-
-    exampleHash = {}
-    exampleHash[roll.file_name.to_s] = {}
-
-    roll.options.each do |k, v|
-      key_color = v[:required] ? 31 : 36
-      descriptionString = "\e[#{key_color}m#{k.to_s.rjust(longest_option)}\e[0m: "
-      descriptionString << "#{v[:description]}"
-      descriptionString << "\n#{' ' * (longest_option + indent)}\e[33mdefault #{v[:default]}\e[0m" if v[:default]
-      optionHash[:descriptions] << descriptionString
-
-      exampleHash[roll.file_name.to_s][k.to_s] = v[:example]
-    end
-
-    optionHash[:examples] << exampleHash.to_yaml.sub("--- \n", ' ' * indent)
-
-    say "Available options for #{roll.title}...", :type => :success
-    say optionHash[:descriptions].join("\n")
-    say
-    say "Example", :type => :success, :indent => indent
-    say optionHash[:examples].join("\n").gsub("\n", "\n#{' ' * indent}")
-  end
-
   # Run a command and output formatting success/errors
   #
   def run command, args = {}
@@ -202,9 +170,10 @@ private
 
   def start
     header
-    menu = get_menu
-    menu.confirm_upgrade
-    menu.confirm_options
+    get_menu
+    confirm_upgrade
+    confirm_options
+    Yuyi::Menu.instance.order_rolls
   end
 
   def header
@@ -233,14 +202,87 @@ private
     until menu
       say 'Navigate to a menu file...', :type => :success
       menu = ask "...or just press enter to load `#{Yuyi::DEFAULT_MENU}`", :readline => true, :color => 36 do |path|
-        say 'Downloading Sources... Please Wait', :type => :warn
-        say
+        path = path.empty? ? Yuyi::DEFAULT_MENU : path
 
-        Yuyi::Menu.new(path.empty? ? Yuyi::DEFAULT_MENU : path)
+        if Yuyi::Menu.load_from_file path
+          say 'Downloading Sources... Please Wait', :type => :warn
+          say
+
+          Yuyi::Menu.new path
+        else
+          say 'Invalid Path... Please check the location of your menu file', :type => :fail
+          say
+
+          nil
+        end
+      end
+    end
+  end
+
+  # Ask to check for upgrades
+  #
+  def confirm_upgrade
+    ask 'Do you want to check for upgrades for already installed rolls? (Yn)', :type => :warn do |upgrade|
+      Yuyi::Menu.upgrade? upgrade == 'Y'
+    end
+  end
+
+  # If any rolls on the menu have options, confirm the options before continuing
+  #
+  def confirm_options
+    confirm = false
+    Yuyi::Menu.rolls.each do |name, roll|
+
+      unless roll.class.options.empty?
+        present_options roll
+        confirm = true
       end
     end
 
-    return menu
+    if confirm
+      ask 'Hit any key when you have your options set correctly in your menu file', :type => :warn do
+        Yuyi::Menu.load_from_file
+      end
+    end
+  end
+
+  # Show formatted options
+  #
+  def present_options roll, examples = true
+    indent = 2
+    longest_option = roll.options.keys.map(&:to_s).max_by(&:length).length + indent
+
+    say "Available options for #{roll.title}...", :color => 32
+
+    roll.option_defs.each do |k, v|
+      option_color = v[:required] ? 31 : 36
+
+      say "#{k.to_s.rjust(longest_option)}: ", :color => option_color, :newline => false
+      say v[:description]
+      say (' ' * (longest_option + indent)), :newline => false
+      say 'default: ', :color => 36, :newline => false
+      say v[:default]
+    end
+
+    if examples
+      examples_hash = {}
+      example_indent = longest_option + indent
+      options = roll.options.dup
+
+      # merge examples from roll source in
+      options.each do |option, value|
+        if example = roll.option_defs[option][:example]
+          options[option] = example
+        end
+      end
+
+      examples_hash[roll.file_name.to_s] = options
+
+
+      say
+      say 'Example', :color => 33, :indent => example_indent, :newline => false
+      say examples_hash.deep_stringify_keys!.to_yaml.sub("--- ", '').gsub(/\n(\s*)/, "\n\\1#{' ' * example_indent}")
+    end
   end
 
   # Output text with a certain color (or style)
@@ -255,10 +297,10 @@ private
   # METHODS FOR FLAGS
   #
   def help
-    longest_option = OPTIONS.keys.map(&:to_s).max.length
+    longest_option = CLI_OPTIONS.keys.map(&:to_s).max.length
 
     say
-    OPTIONS.each do |option, description|
+    CLI_OPTIONS.each do |option, description|
       string = ''
       string << "-#{option.to_s.chars.first}"
       string << ', '
@@ -273,12 +315,13 @@ private
   # List all available rolls
   #
   def list
-    menu = get_menu
+    get_menu
+    Yuyi::Menu.set_sources
 
     # Collect all rolls from all sources
     #
     rolls = []
-    menu.sources.each do |name, source|
+    Yuyi::Menu.sources.each do |source|
       rolls |= source.available_rolls.keys
     end
 

@@ -3,11 +3,11 @@ class Yuyi::Roll
   # DSL API Methods
   #
   def self.title title = nil
-    @title ||= title
+    title ? @title = title : @title
   end
 
   def self.file_name file_name = nil
-    @file_name ||= file_name
+    file_name ? @file_name = file_name : @file_name
   end
 
   def self.install &block
@@ -37,12 +37,20 @@ class Yuyi::Roll
     @dependencies
   end
 
+  # set option definitions
   def self.options arg = {}
-    @options ||= arg
+    @option_defs ||= arg
   end
 
+  # DSL Helper methods
+  #
   def title; self.class.title; end
   def file_name; self.class.file_name; end
+
+  # return option definitions
+  def option_defs
+    self.class.options
+  end
 
   def write_to_file file, *text
     Yuyi.write_to_file file, *text
@@ -53,64 +61,26 @@ class Yuyi::Roll
   end
 
   def options
-    Yuyi::Menu.options self
-  end
-
-private
-
-  # Add to global collection of rolls
-  #
-  def self.inherited klass
-    # convert class name to a human readble title-cased string
-    klass.title klass.to_s.gsub(/(?=[A-Z])/, ' ').strip
-
-    # convert absolute path to a file name symbol
-    klass.file_name caller.first[/[a-z_]+?(?=\.rb)/].to_sym
-
-    Yuyi::Menu.add_roll klass.file_name, klass
-  end
-
-  def self.require_dependencies
-    @dependencies.each do |roll|
-      unless Yuyi::Menu.on_the_menu? roll
-        Yuyi::Menu.find_roll roll
-      end
+    option_defaults = {}
+    option_defs.each do |roll, option_settings|
+      option_defaults[roll] = option_settings[:default]
     end
-  end
 
-  def install
-    instance_eval(&self.class.install)
-  end
-
-  def uninstall
-    instance_eval(&self.class.uninstall)
-  end
-
-  def upgrade
-    instance_eval(&self.class.upgrade)
-  end
-
-  def installed?
-    !!instance_eval(&self.class.installed?)
+    option_defaults.merge Yuyi::Menu.options(self)
   end
 
   def dependencies
     self.class.dependencies
   end
 
-  # Helpers for Yuyi Cli methods
-  def say *args; Yuyi.say *args; end
-  def run *args; Yuyi.run *args; end
-  def command? *args; Yuyi.command? *args; end
-
-  # Run when roll is ordered
+  # Run the roll
   #
-  def initialize
+  def order
     if installed?
       if options[:uninstall]
         Yuyi.say "🍣\s Uninstalling #{title}...", :type => :success
         uninstall
-      elsif Yuyi::Menu.upgrade
+      elsif upgrade?
         Yuyi.say "🍣\s Upgrading #{title}", :type => :success
         upgrade
       end
@@ -118,6 +88,56 @@ private
       Yuyi.say "🍣\s Installing #{title}...", :type => :success
       install
     end
-    Yuyi.say
   end
+
+private
+
+    def upgrade?
+      Yuyi::Menu.upgrade?
+    end
+
+    # Add to global collection of rolls
+    #
+    def self.inherited klass
+      # convert class name to a human readble title-cased string
+      klass.title klass.to_s.gsub(/(?=[A-Z])/, ' ').strip
+
+      # convert absolute path to a file name symbol
+      klass.file_name caller.first[/[a-z_]+?(?=\.rb)/].to_sym
+
+      Yuyi::Menu.add_roll klass.file_name, klass
+    end
+
+    def self.require_dependencies
+      @dependencies.each do |roll|
+        unless Yuyi::Menu.on_the_menu? roll
+          Yuyi::Menu.find_roll roll
+        end
+      end
+    end
+
+    def install
+      instance_eval(&self.class.install)
+    end
+
+    def uninstall
+      instance_eval(&self.class.uninstall)
+    end
+
+    def upgrade
+      instance_eval(&self.class.upgrade)
+    end
+
+    def installed?
+      !!instance_eval(&self.class.installed?)
+    end
+
+    # Helpers for Yuyi Cli methods
+    def say *args; Yuyi.say *args; end
+    def run *args; Yuyi.run *args; end
+    def command? *args; Yuyi.command? *args; end
+
+    def on_the_menu? roll
+      Yuyi::Menu.on_the_menu? roll
+    end
 end

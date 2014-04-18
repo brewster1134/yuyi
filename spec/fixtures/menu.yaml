@@ -1,6 +1,6 @@
 sources:
-  local: spec/fixtures/roll_dir
-  yuyi: spec/fixtures/roll_zip.zip
+- local: spec/fixtures/roll_dir
+- yuyi: spec/fixtures/roll_zip.zip
 rolls:
   foo_roll:
     foo: bar

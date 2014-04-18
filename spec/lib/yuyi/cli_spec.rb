@@ -1,6 +1,6 @@
 require 'spec_helper'
 
-options = Yuyi::Cli::OPTIONS.keys
+options = Yuyi::Cli::CLI_OPTIONS.keys
 
 describe Yuyi::Cli do
   before do
@@ -8,7 +8,7 @@ describe Yuyi::Cli do
     CliTest.stub(:say)
   end
 
-  describe 'OPTIONS' do
+  describe 'CLI_OPTIONS' do
     it 'should have options with a unique first character' do
       flags = options.map{ |option| option.to_s.chars.first }
 
@@ -104,39 +104,13 @@ describe Yuyi::Cli do
     end
   end
 
-  describe '#present_options' do
-    before do
-      @output = ''
-      CliTest.stub :say do |o, p|
-        @output << (o || '')
-      end
-
-      class PresentOptionsRoll
-        def title; :foo_title; end
-        def file_name; :foo_filename; end
-        def options
-          {
-            :option_foo => {
-              :description => 'foo description',
-              :example => '1.0',
-              :default => '2.0',
-              :required => true
-            }
-          }
-        end
-      end
-      @present_options_roll = PresentOptionsRoll.new
-
-      CliTest.present_options @present_options_roll
+  describe '#command?' do
+    it 'should return true if command exists' do
+      expect(CliTest.command?('ruby -v')).to eq true
     end
 
-    it 'should output the neccessary information' do
-      expect(@output).to include 'foo_title'
-      expect(@output).to include 'foo_filename'
-      expect(@output).to include 'foo description'
-      expect(@output).to include '1.0'
-      expect(@output).to include '2.0'
-      expect(@output).to include "\e[31m" # make sure something is red (required)
+    it 'should return false if command does not exist' do
+      expect(CliTest.command?('rubyfoo')).to eq false
     end
   end
 
@@ -184,25 +158,17 @@ describe Yuyi::Cli do
     end
   end
 
-  describe '#command?' do
-    it 'should return true if command exists' do
-      expect(CliTest.command?('ruby -v')).to eq true
-    end
-
-    it 'should return false if command does not exist' do
-      expect(CliTest.command?('rubyfoo')).to eq false
-    end
-  end
-
   describe '#get_menu' do
     before do
       stub_const 'Yuyi::DEFAULT_MENU', 'spec/fixtures/menu.yaml'
+      Yuyi::Menu.stub(:load_from_file).and_return true
     end
 
     after do
-      CliTest.send(:get_menu)
-      Readline.unstub(:readline)
-      Yuyi::Menu.unstub(:new)
+      CliTest.send :get_menu
+      Readline.unstub :readline
+      Yuyi::Menu.unstub :new
+      Yuyi::Menu.unstub :load_from_file
     end
 
     context 'when no input is given' do
@@ -223,7 +189,7 @@ describe Yuyi::Cli do
       end
 
       it 'should request input again' do
-        expect(Readline).to receive(:readline).exactly(3).times
+        expect(Yuyi::Menu).to receive(:new).exactly(3).times
       end
     end
 
@@ -239,11 +205,42 @@ describe Yuyi::Cli do
     end
   end
 
-  # argument methods
+  describe '#present_options' do
+    before do
+      @output = ''
+      CliTest.stub :say do |o, p|
+        @output << (o || '')
+      end
+
+      class PresentOptionsRoll; end
+      PresentOptionsRoll.stub(:title).and_return 'Present Options Roll'
+      PresentOptionsRoll.stub(:file_name).and_return :present_options_roll
+      PresentOptionsRoll.stub(:options).and_return({ :option_foo => '3.0' })
+      PresentOptionsRoll.stub(:option_defs).and_return({
+        :option_foo => {
+          :description => 'foo description',
+          :example => '1.0',
+          :default => '2.0'
+        }
+      })
+
+      CliTest.send :present_options, PresentOptionsRoll
+    end
+
+    it 'should output the neccessary information' do
+      expect(@output).to include 'Present Options Roll'
+      expect(@output).to include 'present_options_roll'
+      expect(@output).to include 'foo description'
+      expect(@output).to include '1.0'
+      expect(@output).to include '2.0'
+    end
+  end
+
+  # Argument Methods
   #
   describe '#help' do
     before do
-      stub_const 'Yuyi::Cli::OPTIONS', {
+      stub_const 'Yuyi::Cli::CLI_OPTIONS', {
         :FOO => 'doo',
         :bar => 'boo'
       }
@@ -268,22 +265,27 @@ describe Yuyi::Cli do
 
   describe '#list' do
     before do
+      class ListRollSource; end
+      ListRollSource.stub(:available_rolls).and_return({ :list_roll => nil })
+
+      CliTest.stub :get_menu
+      Yuyi::Menu.stub :set_sources
+      Yuyi::Menu.stub(:sources).and_return([ ListRollSource ])
+
       @output = ''
       CliTest.stub :say do |o, p|
         @output << (o || '')
       end
 
-      Readline.stub(:readline).and_return 'spec/fixtures/menu.yaml'
-
       CliTest.send :list
     end
 
     after do
-      Readline.unstub(:readline)
+      Yuyi::Menu.unstub :set_sources
     end
 
     it 'should return all rolls' do
-      expect(@output).to include 'foo_roll'
+      expect(@output).to include 'list_roll'
     end
   end
 end

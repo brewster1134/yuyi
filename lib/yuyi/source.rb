@@ -25,7 +25,16 @@ private
     end
 
     def create_tmp_dir
-      @tmp_dir = FileUtils.mkdir_p File.join(@@root_tmp_dir, @name.to_s)
+      dir = FileUtils.mkdir_p(File.join(@@root_tmp_dir, @name.to_s))
+
+      dir = case dir
+      when Array
+        dir.first
+      else
+        dir
+      end
+
+      @tmp_dir = dir
     end
 
     def download_source

@@ -23,6 +23,10 @@ class Hash
     deep_transform_keys!{ |key| key.to_sym rescue key }
   end
 
+  def deep_stringify_keys!
+    deep_transform_keys!{ |key| key.to_s rescue key }
+  end
+
   # Destructively convert all keys by using the block operation.
   # This includes the keys from the root hash and from all
   # nested hashes.
@@ -35,7 +39,7 @@ class Hash
       when Hash
         value.deep_transform_keys!(&block)
       when Array
-        value.each{ |e| e.deep_transform_keys!(&block) }
+        value.each{ |e| e.deep_transform_keys!(&block) rescue value }
       else
         value
       end

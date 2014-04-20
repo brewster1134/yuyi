@@ -98,11 +98,10 @@ end
 ```
 
 ### TODO
-* Upgrading requires an argument
-* Display roll version
 * setup (post suite install tasks)
 * Enforce required options
 * New roll generator (use new!)
 * DOCS!
+* show roll options on -l
 
 [.](http://www.comedycentral.com/video-clips/3myds9/upright-citizens-brigade-sushi-chef)

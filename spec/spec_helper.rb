@@ -31,17 +31,25 @@ class FalseClass; include Boolean; end
 class Object
   def var var, value = nil
     if self.instance_of? Class
-      if value
-        self.send(:class_variable_set, :"@@#{var}", value)
-      else
-        self.send(:class_variable_get, :"@@#{var}")
-      end
+      class_var var, value
     else
-      if value
-        self.send(:instance_variable_set, :"@#{var}", value)
-      else
-        self.send(:instance_variable_get, :"@#{var}")
-      end
+      instance_var var, value
+    end
+  end
+
+  def class_var var, value = nil
+    if value
+      self.send(:class_variable_set, :"@@#{var}", value)
+    else
+      self.send(:class_variable_get, :"@@#{var}")
+    end
+  end
+
+  def instance_var var, value = nil
+    if value
+      self.send(:instance_variable_set, :"@#{var}", value)
+    else
+      self.send(:instance_variable_get, :"@#{var}")
     end
   end
 end

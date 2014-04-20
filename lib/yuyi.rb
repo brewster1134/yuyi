@@ -1,8 +1,4 @@
-class Yuyi
-  NAME = 'Yuyi'
-  VERSION = '0.1.0'
-  DEFAULT_MENU = File.expand_path('~/.yuyi_menu')
-end
+class Yuyi; end
 
 require 'yuyi/cli'
 require 'yuyi/core'
@@ -12,4 +8,8 @@ require 'yuyi/source'
 
 class Yuyi
   extend Yuyi::Cli
+
+  NAME = 'Yuyi'
+  VERSION = '0.1.0'
+  DEFAULT_MENU = File.expand_path('~/.yuyi_menu')
 end

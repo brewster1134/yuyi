@@ -4,7 +4,7 @@ describe Yuyi::Roll do
   before do
     Yuyi::Menu.stub :add_roll
     Yuyi::Menu.stub :find_roll
-    Yuyi::Menu.stub(:options).and_return({ :foo => 'bar' })
+    Yuyi::Menu.stub(:options).and_return({ :foo => 'menu option' })
     Yuyi::Menu.stub(:on_the_menu?).and_return false
 
     class TestRoll < Yuyi::Roll
@@ -16,8 +16,14 @@ describe Yuyi::Roll do
       options({
         :foo => {
           :description => 'Foo.',
-          :example => 'bar',
+          :example => 'foo example',
+          :default => 'foo default',
           :required => true
+        },
+        :bar => {
+          :description => 'Bar.',
+          :example => 'bar example',
+          :default => 'bar default'
         }
       })
     end
@@ -40,6 +46,7 @@ describe Yuyi::Roll do
         upgrade {}
         installed? {}
       end
+
       expect(Yuyi::Menu).to have_received(:add_roll).with :roll_spec, TestInheritRoll
     end
 
@@ -78,14 +85,11 @@ describe Yuyi::Roll do
     end
 
     it 'should return .options' do
-      expect(TestRoll.options[:foo][:example]).to eq 'bar'
+      expect(TestRoll.options[:foo][:default]).to eq 'foo default'
     end
   end
 
   context 'when initialized' do
-    before do
-    end
-
     it 'should return the title' do
       expect(TestRoll.new.send(:title)).to eq 'Test Roll'
     end
@@ -95,53 +99,76 @@ describe Yuyi::Roll do
     end
 
     it 'should return options' do
-      expect(TestRoll.new.options).to eq({ :foo => 'bar' })
+      expect(TestRoll.new.options).to eq({
+        :foo => 'menu option',
+        :bar => 'bar default'
+      })
+
+      expect(TestRoll.new.option_defs).to eq({
+        :foo => {
+          :description => 'Foo.',
+          :example => 'foo example',
+          :default => 'foo default',
+          :required => true
+        },
+        :bar => {
+          :description => 'Bar.',
+          :example => 'bar example',
+          :default => 'bar default'
+        }
+      })
+    end
+  end
+
+  context '#order' do
+    before do
+      @roll = TestRoll.new
+      @roll.stub(:install)
+      @roll.stub(:uninstall)
+      @roll.stub(:upgrade)
     end
 
     context 'when not installed' do
-      after do
-        TestRoll.any_instance.stub(:installed?).and_return false
-        @roll = TestRoll.new
+      before do
+        @roll.stub(:installed?).and_return false
+        @roll.send :order
       end
 
       it 'should call install' do
-        expect_any_instance_of(TestRoll).to receive :install
-        expect_any_instance_of(TestRoll).to_not receive :uninstall
-        expect_any_instance_of(TestRoll).to_not receive :upgrade
+        expect(@roll).to have_received :install
+        expect(@roll).to_not have_received :uninstall
+        expect(@roll).to_not have_received :upgrade
       end
     end
 
     context 'when installed' do
       before do
-        TestRoll.any_instance.stub(:installed?).and_return true
+        @roll.stub(:installed?).and_return true
       end
 
       context 'when uninstall option is set' do
-        after do
+        before do
           Yuyi::Menu.stub(:options).and_return({ :uninstall => true })
-          @roll = TestRoll.new
+          @roll.send :order
         end
 
         it 'should call uninstall' do
-          expect_any_instance_of(TestRoll).to_not receive :install
-          expect_any_instance_of(TestRoll).to receive :uninstall
-          expect_any_instance_of(TestRoll).to_not receive :upgrade
+          expect(@roll).to_not have_received :install
+          expect(@roll).to have_received :uninstall
+          expect(@roll).to_not have_received :upgrade
         end
       end
 
       context 'when uninstall option is not set & upgrade is true' do
         before do
-          Yuyi::Menu.stub(:upgrade).and_return true
-        end
-
-        after do
-          @roll = TestRoll.new
+          @roll.stub(:upgrade?).and_return true
+          @roll.send :order
         end
 
         it 'should call upgrade' do
-          expect_any_instance_of(TestRoll).to_not receive :install
-          expect_any_instance_of(TestRoll).to_not receive :uninstall
-          expect_any_instance_of(TestRoll).to receive :upgrade
+          expect(@roll).to_not have_received :install
+          expect(@roll).to_not have_received :uninstall
+          expect(@roll).to have_received :upgrade
         end
       end
     end

@@ -3,8 +3,8 @@ require 'spec_helper'
 describe Yuyi::Source do
   shared_examples 'a source' do
     before do
-      @url = File.expand_path(File.join(File.dirname(__FILE__), "../../fixtures/#{source}"))
-      @source = Yuyi::Source.new @name, @url
+      @path = File.expand_path(File.join(File.dirname(__FILE__), "../../fixtures/#{source}"))
+      @source = Yuyi::Source.new @name, @path
     end
 
     it 'should set the root tmp dir' do
@@ -13,13 +13,13 @@ describe Yuyi::Source do
 
     it 'should set the instance vars' do
       expect(@source.var(:name)).to eq @name
-      expect(@source.var(:url)).to eq @url
+      expect(@source.var(:path)).to eq @path
       expect(@source.var(:tmp_dir)).to include Yuyi::Source.var(:root_tmp_dir)
       expect(@source.var(:tmp_dir)).to include @name.to_s
     end
 
     it 'should put roll files in the tmp dir' do
-      paths = @source.var(:available_rolls).values.map{ |r| r[:require_path]}
+      paths = @source.var(:available_rolls).values
 
       expect(paths.size).to eq 2
 

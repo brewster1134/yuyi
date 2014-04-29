@@ -27,6 +27,10 @@ private
     def create_tmp_dir
       dir = FileUtils.mkdir_p(File.join(@@root_tmp_dir, @name.to_s))
 
+      # RUBY_VERSION
+      # mkdir_p <= 1.8 returns a string
+      # mkdir_p >= 1.9 returns an array
+      #
       dir = case dir
       when Array
         dir.first

@@ -1,3 +1,5 @@
+# encoding: utf-8
+
 class Yuyi::Roll
 
   # DSL API Methods
@@ -78,14 +80,14 @@ class Yuyi::Roll
   def order
     if installed?
       if options[:uninstall]
-        Yuyi.say "🍣\s Uninstalling #{title}...", :type => :success
+        Yuyi.say "🍣\s Uninstalling #{title}...", :color => 33
         uninstall
       elsif upgrade?
-        Yuyi.say "🍣\s Upgrading #{title}", :type => :success
+        Yuyi.say "🍣\s Upgrading #{title}", :color => 36
         upgrade
       end
     else
-      Yuyi.say "🍣\s Installing #{title}...", :type => :success
+      Yuyi.say "🍣\s Installing #{title}...", :color => 32
       install
     end
   end

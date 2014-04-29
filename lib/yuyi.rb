@@ -10,6 +10,6 @@ class Yuyi
   extend Yuyi::Cli
 
   NAME = 'Yuyi'
-  VERSION = '0.1.0'
+  VERSION = '0.1.1'
   DEFAULT_MENU = File.expand_path('~/.yuyi_menu')
 end

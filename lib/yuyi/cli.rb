@@ -113,27 +113,37 @@ module Yuyi::Cli
   # Run a command and output formatting success/errors
   #
   def run command, args = {}
-    Open3.popen3 command do |stdin, stdout, stderr|
-      err = stderr.read.chomp
-      out = stdout.read.chomp
+    begin
+      Open3.popen3 command do |stdin, stdout, stderr|
+        err = stderr.read.chomp
+        out = stdout.read.chomp
 
-      verbose = if args[:verbose].nil?
-        @verbose
-      else
-        args[:verbose]
+        verbose = if args[:verbose].nil?
+          @verbose
+        else
+          args[:verbose]
+        end
+
+        if verbose
+          say(err, args.merge({:type => :fail})) unless err.empty?
+          say(out, args.merge({:type => :success})) unless out.empty?
+        end
+
+        # return false is there are errors
+        if args[:boolean]
+          err.empty?
+        else
+          err.empty? ? out : err
+        end
       end
+    rescue
+      err = "Command `#{command}` not found"
 
       if verbose
-        say(err, args.merge({:type => :fail})) unless err.empty?
-        say(out, args.merge({:type => :success})) unless out.empty?
+        say err, :type => :fail
       end
 
-      # return false is there are errors
-      if args[:boolean]
-        err.empty?
-      else
-        err.empty? ? out : err
-      end
+      args[:boolean] ? false : err
     end
   end
 

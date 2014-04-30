@@ -113,16 +113,17 @@ module Yuyi::Cli
   # Run a command and output formatting success/errors
   #
   def run command, args = {}
+    # check if in verbose mode
+    verbose = if args[:verbose].nil?
+      @verbose
+    else
+      args[:verbose]
+    end
+
     begin
       Open3.popen3 command do |stdin, stdout, stderr|
         err = stderr.read.chomp
         out = stdout.read.chomp
-
-        verbose = if args[:verbose].nil?
-          @verbose
-        else
-          args[:verbose]
-        end
 
         if verbose
           say(err, args.merge({:type => :fail})) unless err.empty?

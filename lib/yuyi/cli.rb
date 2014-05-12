@@ -184,6 +184,7 @@ private
     get_menu
     confirm_upgrade
     confirm_options
+    authenticate
     Yuyi::Menu.instance.order_rolls
   end
 
@@ -255,6 +256,16 @@ private
         Yuyi::Menu.load_from_file
       end
     end
+  end
+
+  def authenticate
+    say 'Please enter the admin password', :type => :warn
+    say 'NOTE: This is passed directly to sudo and is not saved.'
+    say '      This will ensure all your installs will run unsupervised.'
+
+    # clear sudo timestamp & run any command as admin to force a password prompt
+    system 'sudo -k; sudo echo >> /dev/null 2>&1'
+    say
   end
 
   # Show formatted options

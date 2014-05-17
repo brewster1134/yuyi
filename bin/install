@@ -23,10 +23,13 @@ end
 
 # Create the directory to download to and install from
 def install_dir
-  @install_dir ||= unless @install_dir
-    `[ -d Yuyi ] || /bin/mkdir #{ENV['TMPDIR']}Yuyi`
-    "#{ENV['TMPDIR']}Yuyi"
+  dir = "#{ENV['TMPDIR']}Yuyi"
+
+  unless File.directory? dir
+    `/bin/mkdir #{dir}`
   end
+
+  dir
 end
 
 # Get OSX minor version

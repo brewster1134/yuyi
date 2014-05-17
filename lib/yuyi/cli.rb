@@ -122,6 +122,9 @@ module Yuyi::Cli
 
     begin
       Open3.popen3 command do |stdin, stdout, stderr|
+        stdin.close
+        stdout.gets
+        stderr.gets
         err = stderr.read.chomp
         out = stdout.read.chomp
 

@@ -121,25 +121,26 @@ module Yuyi::Cli
     end
 
     begin
-      Open3.popen3 command do |stdin, stdout, stderr|
-        stdin.close
-        stdout.gets
-        stderr.gets
-        err = stderr.read.chomp
-        out = stdout.read.chomp
+      system command
+      # Open3.popen3 command do |stdin, stdout, stderr|
+      #   out = stdout.read.chomp rescue nil
+      #   err = stderr.read.chomp rescue nil
+      #   stdin.close
+      #   stdout.close
+      #   stderr.close
 
-        if verbose
-          say(err, args.merge({:type => :fail})) unless err.empty?
-          say(out, args.merge({:type => :success})) unless out.empty?
-        end
+      #   if verbose
+      #     say(err, args.merge({:type => :fail})) unless err.empty?
+      #     say(out, args.merge({:type => :success})) unless out.empty?
+      #   end
 
-        # return false is there are errors
-        if args[:boolean]
-          err.empty?
-        else
-          err.empty? ? out : err
-        end
-      end
+      #   # return false is there are errors
+      #   if args[:boolean]
+      #     err.empty?
+      #   else
+      #     err.empty? ? out : err
+      #   end
+      # end
     rescue
       err = "Command `#{command}` not found"
 
@@ -264,7 +265,7 @@ private
   def authenticate
     say 'Please enter the admin password', :type => :warn
     say 'NOTE: This is passed directly to sudo and is not saved.'
-    say '      This will ensure all your installs will run unsupervised.'
+    say '      This will ensure all your installs run unsupervised.'
 
     # clear sudo timestamp & run any command as admin to force a password prompt
     system 'sudo -k; sudo echo >> /dev/null 2>&1'

@@ -76,7 +76,12 @@ private
 
     def unzip_source file
       # unzip file
-      unzip = Yuyi.run "/usr/bin/tar -xf #{file} -C #{@tmp_dir}"
+      unzip = if RUBY_PLATFORM =~ /darwin/
+        Yuyi.run "tar -xf #{file} -C #{@tmp_dir}", :boolean => true
+      else
+        Yuyi.run "unzip -o #{file} -d #{@tmp_dir}", :boolean => true
+      end
+
       if unzip == false
         Yuyi.say "The `#{@name}` source is an unrecognized archive format.", :type => :fail
         Yuyi.say "Make sure it is a format supported by tar (tar, pax, cpio, zip, jar, ar, or ISO 9660 image)", :type => :warn

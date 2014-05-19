@@ -35,6 +35,7 @@ describe Yuyi::Source do
 
   context 'with a compressed file' do
     let(:source){ 'roll_zip.zip' }
+
     before do
       @name = :compressed_source
     end

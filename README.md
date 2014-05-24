@@ -1,3 +1,4 @@
+![Travis CI](https://travis-ci.org/brewster1134/Yuyi.svg?branch=master)
 # Yuyi
 Opinionated automation for installing/uninstalling/upgrading your machine environment
 

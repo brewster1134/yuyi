@@ -114,42 +114,15 @@ module Yuyi::Cli
   #
   def run command, args = {}
     # check if in verbose mode
-    verbose = if args[:verbose].nil?
-      @verbose
-    else
-      args[:verbose]
+    verbose = args[:verbose] || @verbose
+    output = `echo | #{command} 2>&1`
+    success = $?.success?
+
+    if verbose
+      say "RUNNING: #{command}", :type => (success ? :success : :fail)
     end
 
-    begin
-      system command
-      # Open3.popen3 command do |stdin, stdout, stderr|
-      #   out = stdout.read.chomp rescue nil
-      #   err = stderr.read.chomp rescue nil
-      #   stdin.close
-      #   stdout.close
-      #   stderr.close
-
-      #   if verbose
-      #     say(err, args.merge({:type => :fail})) unless err.empty?
-      #     say(out, args.merge({:type => :success})) unless out.empty?
-      #   end
-
-      #   # return false is there are errors
-      #   if args[:boolean]
-      #     err.empty?
-      #   else
-      #     err.empty? ? out : err
-      #   end
-      # end
-    rescue
-      err = "Command `#{command}` not found"
-
-      if verbose
-        say err, :type => :fail
-      end
-
-      args[:boolean] ? false : err
-    end
+    args[:boolean] ? success : output
   end
 
   def command? command

@@ -100,6 +100,7 @@ end
 
 ### TODO
 * setup (post suite install tasks)
+* write to file checks for existing lines
 * Enforce required options
 * New roll generator (use new!)
 * DOCS!

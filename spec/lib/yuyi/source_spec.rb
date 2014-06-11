@@ -24,7 +24,7 @@ describe Yuyi::Source do
       expect(paths.size).to eq 2
 
       paths.each do |path|
-        expect(File.exists?(File.join(Yuyi::Source.var(:root_tmp_dir), "#{path}.rb"))).to be_true
+        expect(File.exists?(File.join(Yuyi::Source.var(:root_tmp_dir), "#{path}.rb"))).to be true
       end
     end
 

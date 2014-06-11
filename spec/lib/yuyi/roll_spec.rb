@@ -2,16 +2,20 @@ require 'spec_helper'
 
 describe Yuyi::Roll do
   before do
-    Yuyi::Menu.stub :add_roll
-    Yuyi::Menu.stub :find_roll
-    Yuyi::Menu.stub(:options).and_return({ :foo => 'menu option' })
-    Yuyi::Menu.stub(:on_the_menu?).and_return false
+    allow(Yuyi::Menu).to receive :add_roll
+    allow(Yuyi::Menu).to receive :find_roll
+    allow(Yuyi::Menu).to receive :add_pre_install
+    allow(Yuyi::Menu).to receive :add_post_install
+    allow(Yuyi::Menu).to receive(:options).and_return({ :foo => 'menu option' })
+    allow(Yuyi::Menu).to receive(:on_the_menu?).and_return false
 
     class TestRoll < Yuyi::Roll
-      install {}
-      uninstall {}
-      upgrade {}
-      installed? {}
+      pre_install { :pre_install }
+      install { :install }
+      post_install { :post_install }
+      uninstall { :uninstall }
+      upgrade { :upgrade }
+      installed? { :installed? }
       dependencies :foo
       options({
         :foo => {
@@ -30,15 +34,17 @@ describe Yuyi::Roll do
   end
 
   after do
-    Yuyi::Menu.unstub :add_roll
-    Yuyi::Menu.unstub :find_roll
-    Yuyi::Menu.unstub :options
-    Yuyi::Menu.unstub :on_the_menu?
+    allow(Yuyi::Menu).to receive(:add_roll).and_call_original
+    allow(Yuyi::Menu).to receive(:find_roll).and_call_original
+    allow(Yuyi::Menu).to receive(:add_pre_install).and_call_original
+    allow(Yuyi::Menu).to receive(:add_post_install).and_call_original
+    allow(Yuyi::Menu).to receive(:options).and_call_original
+    allow(Yuyi::Menu).to receive(:on_the_menu?).and_call_original
   end
 
   context 'when inherited' do
     it 'should add the roll to the menu' do
-      Yuyi::Menu.stub :add_roll
+      allow(Yuyi::Menu).to receive :add_roll
 
       class TestInheritRoll < Yuyi::Roll
         install {}
@@ -52,6 +58,11 @@ describe Yuyi::Roll do
 
     # DSL Methods
     #
+
+    it 'should add dependencies' do
+      expect(Yuyi::Menu).to have_received(:find_roll).with :foo
+    end
+
     it 'should create a title' do
       expect(TestRoll.title).to eq 'Test Roll'
     end
@@ -60,12 +71,18 @@ describe Yuyi::Roll do
       expect(TestRoll.file_name).to eq :roll_spec
     end
 
-    it 'should add dependencies' do
-      expect(Yuyi::Menu).to have_received(:find_roll).with :foo
+    it 'should respond to .pre_install' do
+      expect(Yuyi::Menu).to have_received(:add_pre_install)
+      expect(TestRoll.pre_install).to be_a Proc
     end
 
     it 'should respond to .install' do
       expect(TestRoll.install).to be_a Proc
+    end
+
+    it 'should respond to .post_install' do
+      expect(Yuyi::Menu).to have_received(:add_post_install)
+      expect(TestRoll.post_install).to be_a Proc
     end
 
     it 'should respond to .uninstall' do
@@ -90,21 +107,53 @@ describe Yuyi::Roll do
   end
 
   context 'when initialized' do
+    before do
+      @test_roll = TestRoll.new
+    end
+
     it 'should return the title' do
-      expect(TestRoll.new.send(:title)).to eq 'Test Roll'
+      expect(@test_roll.title).to eq 'Test Roll'
     end
 
     it 'should return the file_name' do
-      expect(TestRoll.new.send(:file_name)).to eq :roll_spec
+      expect(@test_roll.file_name).to eq :roll_spec
+    end
+
+    it 'should add dependencies' do
+      expect(@test_roll.dependencies).to eq([:foo])
+    end
+
+    it 'should return the pre_install results' do
+      expect(@test_roll.send(:pre_install)).to eq :pre_install
+    end
+
+    it 'should return the install results' do
+      expect(@test_roll.send(:install)).to eq :install
+    end
+
+    it 'should return the post_install results' do
+      expect(@test_roll.send(:post_install)).to eq :post_install
+    end
+
+    it 'should return the uninstall results' do
+      expect(@test_roll.send(:uninstall)).to eq :uninstall
+    end
+
+    it 'should return the upgrade results' do
+      expect(@test_roll.send(:upgrade)).to eq :upgrade
+    end
+
+    it 'should return the installed? boolean' do
+      expect(@test_roll.send(:installed?)).to eq true
     end
 
     it 'should return options' do
-      expect(TestRoll.new.options).to eq({
+      expect(@test_roll.options).to eq({
         :foo => 'menu option',
         :bar => 'bar default'
       })
 
-      expect(TestRoll.new.option_defs).to eq({
+      expect(@test_roll.option_defs).to eq({
         :foo => {
           :description => 'Foo.',
           :example => 'foo example',
@@ -123,14 +172,14 @@ describe Yuyi::Roll do
   context '#order' do
     before do
       @roll = TestRoll.new
-      @roll.stub(:install)
-      @roll.stub(:uninstall)
-      @roll.stub(:upgrade)
+      allow(@roll).to receive(:install)
+      allow(@roll).to receive(:uninstall)
+      allow(@roll).to receive(:upgrade)
     end
 
     context 'when not installed' do
       before do
-        @roll.stub(:installed?).and_return false
+        allow(@roll).to receive(:installed?).and_return false
         @roll.send :order
       end
 
@@ -143,12 +192,12 @@ describe Yuyi::Roll do
 
     context 'when installed' do
       before do
-        @roll.stub(:installed?).and_return true
+        allow(@roll).to receive(:installed?).and_return true
       end
 
       context 'when uninstall option is set' do
         before do
-          Yuyi::Menu.stub(:options).and_return({ :uninstall => true })
+          allow(Yuyi::Menu).to receive(:options).and_return({ :uninstall => true })
           @roll.send :order
         end
 
@@ -161,7 +210,7 @@ describe Yuyi::Roll do
 
       context 'when uninstall option is not set & upgrade is true' do
         before do
-          @roll.stub(:upgrade?).and_return true
+          allow(@roll).to receive(:upgrade?).and_return true
           @roll.send :order
         end
 

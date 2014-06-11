@@ -11,5 +11,5 @@ class Yuyi
 
   NAME = 'Yuyi'
   VERSION = '0.1.1'
-  DEFAULT_MENU = File.expand_path('~/.yuyi_menu')
+  DEFAULT_MENU = File.expand_path('~/yuyi_menu')
 end

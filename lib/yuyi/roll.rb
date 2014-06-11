@@ -12,8 +12,18 @@ class Yuyi::Roll
     file_name ? @file_name = file_name : @file_name
   end
 
+  def self.pre_install &block
+    Yuyi::Menu.add_pre_install block
+    @pre_install ||= block
+  end
+
   def self.install &block
     @install ||= block
+  end
+
+  def self.post_install &block
+    Yuyi::Menu.add_post_install block
+    @post_install ||= block
   end
 
   def self.uninstall &block
@@ -118,8 +128,16 @@ private
       end
     end
 
+    def pre_install
+      instance_eval(&self.class.pre_install)
+    end
+
     def install
       instance_eval(&self.class.install)
+    end
+
+    def post_install
+      instance_eval(&self.class.post_install)
     end
 
     def uninstall

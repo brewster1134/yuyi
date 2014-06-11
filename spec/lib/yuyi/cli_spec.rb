@@ -5,7 +5,7 @@ options = Yuyi::Cli::CLI_OPTIONS.keys
 describe Yuyi::Cli do
   before do
     class CliTest; extend Yuyi::Cli; end
-    CliTest.stub(:say)
+    allow(CliTest).to receive(:say)
   end
 
   describe 'CLI_OPTIONS' do
@@ -19,7 +19,7 @@ describe Yuyi::Cli do
   describe '#init' do
     context 'without arguments' do
       before do
-        CliTest.stub :start
+        allow(CliTest).to receive :start
         CliTest.init []
       end
 
@@ -30,7 +30,7 @@ describe Yuyi::Cli do
 
     context 'with an invalid argument' do
       before do
-        CliTest.stub :help
+        allow(CliTest).to receive :help
         CliTest.init 'foo'
       end
 
@@ -42,7 +42,7 @@ describe Yuyi::Cli do
     context 'with the respective argument' do
       options.each do |option|
         before do
-          CliTest.stub option.to_s.downcase.to_sym
+          allow(CliTest).to receive option.to_s.downcase.to_sym
 
           # Test both option forms
           CliTest.init "-#{option.to_s.chars.first}"
@@ -58,12 +58,12 @@ describe Yuyi::Cli do
 
   describe '#say' do
     before do
-      CliTest.stub(:say).and_call_original
-      STDOUT.stub(:puts)
+      allow(CliTest).to receive(:say).and_call_original
+      allow(STDOUT).to receive(:puts)
     end
 
     after do
-      STDOUT.unstub(:puts)
+      allow(STDOUT).to receive(:puts).and_call_original
     end
 
     it 'should output the correct type' do
@@ -89,12 +89,12 @@ describe Yuyi::Cli do
 
   describe '#ask' do
     before do
-      CliTest.stub(:say)
-      STDIN.stub(:gets).and_return 'foo'
+      allow(CliTest).to receive(:say)
+      allow(STDIN).to receive(:gets).and_return 'foo'
     end
 
     after do
-      STDIN.unstub(:gets)
+      allow(STDIN).to receive(:gets).and_call_original
     end
 
     it 'should pass the user input to the block' do
@@ -124,7 +124,7 @@ describe Yuyi::Cli do
     end
 
     it 'should create a file if it doesnt exist' do
-      expect(File.exists?('test')).to be_true
+      expect(File.exists?('test')).to be true
     end
 
     it 'should append to the file' do
@@ -161,20 +161,20 @@ describe Yuyi::Cli do
   describe '#get_menu' do
     before do
       stub_const 'Yuyi::DEFAULT_MENU', 'spec/fixtures/menu.yaml'
-      Yuyi::Menu.stub(:load_from_file).and_return true
+      allow(Yuyi::Menu).to receive(:load_from_file).and_return true
     end
 
     after do
       CliTest.send :get_menu
-      Readline.unstub :readline
-      Yuyi::Menu.unstub :new
-      Yuyi::Menu.unstub :load_from_file
+      allow(Readline).to receive(:readline).and_call_original
+      allow(Yuyi::Menu).to receive(:new).and_call_original
+      allow(Yuyi::Menu).to receive(:load_from_file).and_call_original
     end
 
     context 'when no input is given' do
       before do
-        Readline.stub(:readline).and_return('')
-        Yuyi::Menu.stub(:new).and_return(true)
+        allow(Readline).to receive(:readline).and_return('')
+        allow(Yuyi::Menu).to receive(:new).and_return(true)
       end
 
       it 'should load the default menu' do
@@ -184,8 +184,8 @@ describe Yuyi::Cli do
 
     context 'when an invalid path is given' do
       before do
-        Readline.stub(:readline).and_return('foo', 'bar', '')
-        Yuyi::Menu.stub(:new).and_return(false, false, true)
+        allow(Readline).to receive(:readline).and_return('foo', 'bar', '')
+        allow(Yuyi::Menu).to receive(:new).and_return(false, false, true)
       end
 
       it 'should request input again' do
@@ -195,8 +195,8 @@ describe Yuyi::Cli do
 
     context 'when a custom path is given' do
       before do
-        Readline.stub(:readline).and_return('spec/fixtures/menu.yaml')
-        Yuyi::Menu.stub(:new).and_return(true)
+        allow(Readline).to receive(:readline).and_return('spec/fixtures/menu.yaml')
+        allow(Yuyi::Menu).to receive(:new).and_return(true)
       end
 
       it 'should load the menu' do
@@ -208,15 +208,15 @@ describe Yuyi::Cli do
   describe '#present_options' do
     before do
       @output = ''
-      CliTest.stub :say do |o, p|
+      allow(CliTest).to receive :say do |o, p|
         @output << (o || '')
       end
 
       class PresentOptionsRoll; end
-      PresentOptionsRoll.stub(:title).and_return 'Present Options Roll'
-      PresentOptionsRoll.stub(:file_name).and_return :present_options_roll
-      PresentOptionsRoll.stub(:options).and_return({ :option_foo => '3.0' })
-      PresentOptionsRoll.stub(:option_defs).and_return({
+      allow(PresentOptionsRoll).to receive(:title).and_return 'Present Options Roll'
+      allow(PresentOptionsRoll).to receive(:file_name).and_return :present_options_roll
+      allow(PresentOptionsRoll).to receive(:options).and_return({ :option_foo => '3.0' })
+      allow(PresentOptionsRoll).to receive(:option_defs).and_return({
         :option_foo => {
           :description => 'foo description',
           :example => '1.0',
@@ -246,7 +246,7 @@ describe Yuyi::Cli do
       }
 
       @output = ''
-      CliTest.stub :say do |o, p|
+      allow(CliTest).to receive :say do |o, p|
         @output << (o || '')
       end
 
@@ -266,14 +266,14 @@ describe Yuyi::Cli do
   describe '#list' do
     before do
       class ListRollSource; end
-      ListRollSource.stub(:available_rolls).and_return({ :list_roll => nil })
+      allow(ListRollSource).to receive(:available_rolls).and_return({ :list_roll => nil })
 
-      CliTest.stub :get_menu
-      Yuyi::Menu.stub :set_sources
-      Yuyi::Menu.stub(:sources).and_return([ ListRollSource ])
+      allow(CliTest).to receive :get_menu
+      allow(Yuyi::Menu).to receive :set_sources
+      allow(Yuyi::Menu).to receive(:sources).and_return([ ListRollSource ])
 
       @output = ''
-      CliTest.stub :say do |o, p|
+      allow(CliTest).to receive :say do |o, p|
         @output << (o || '')
       end
 
@@ -281,7 +281,7 @@ describe Yuyi::Cli do
     end
 
     after do
-      Yuyi::Menu.unstub :set_sources
+      allow(Yuyi::Menu).to receive(:set_sources).and_call_original
     end
 
     it 'should return all rolls' do

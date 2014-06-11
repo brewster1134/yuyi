@@ -61,20 +61,20 @@ describe Yuyi::Menu do
       Yuyi::Menu.instance_var :object, { :sources => [{ :foo_source => 'foo/path' }]}
 
       class FooSource; end
-      Yuyi::Source.stub(:new).and_return FooSource
+      allow(Yuyi::Source).to receive(:new).and_return FooSource
 
       @menu.send :set_sources
     end
 
     it 'should set the sources var' do
-      expect(@menu.var(:sources)).to have(1).items
+      expect(@menu.var(:sources).size).to eq(1)
       expect(@menu.var(:sources)[0]).to eq FooSource
     end
   end
 
   describe '#find_roll' do
     before do
-      @menu.stub :require_roll
+      allow(@menu).to receive :require_roll
     end
 
     context 'when a source is specified' do
@@ -91,8 +91,8 @@ describe Yuyi::Menu do
       before do
         class TestSourceA; end
         class TestSourceB; end
-        TestSourceA.stub(:available_rolls).and_return({ :foo_roll => 'foo_roll' })
-        TestSourceB.stub(:available_rolls).and_return({ :bar_roll => 'bar_roll' })
+        allow(TestSourceA).to receive(:available_rolls).and_return({ :foo_roll => 'foo_roll' })
+        allow(TestSourceB).to receive(:available_rolls).and_return({ :bar_roll => 'bar_roll' })
 
         @menu.var :sources, [TestSourceA, TestSourceB]
       end
@@ -106,7 +106,7 @@ describe Yuyi::Menu do
     context 'when no roll is found' do
       before do
         class TestSource; end
-        TestSource.stub(:available_rolls).and_return({})
+        allow(TestSource).to receive(:available_rolls).and_return({})
 
         @menu.var :sources, [TestSource]
       end
@@ -120,11 +120,11 @@ describe Yuyi::Menu do
 
   describe '#on_the_menu?' do
     before do
-      @menu.stub(:object).and_return({ :rolls => { :foo => nil }})
+      allow(@menu).to receive(:object).and_return({ :rolls => { :foo => nil }})
     end
 
     it 'should return true if on the menu' do
-      expect(@menu.on_the_menu?(:foo)).to be_true
+      expect(@menu.on_the_menu?(:foo)).to be true
     end
   end
 
@@ -136,7 +136,7 @@ describe Yuyi::Menu do
       class EmptyDependencyRoll
         def dependencies; []; end
       end
-      @menu.stub(:rolls).and_return({ :dependency_roll => DependencyRoll.new, :foo => EmptyDependencyRoll.new, :bar => EmptyDependencyRoll.new })
+      allow(@menu).to receive(:rolls).and_return({ :dependency_roll => DependencyRoll.new, :foo => EmptyDependencyRoll.new, :bar => EmptyDependencyRoll.new })
     end
 
     it 'should add the roll to the class var' do
@@ -147,10 +147,10 @@ describe Yuyi::Menu do
   describe '#order_rolls' do
     before do
       class OrderRollsRoll; end
-      OrderRollsRoll.stub :order
+      allow(OrderRollsRoll).to receive :order
 
-      @menu.stub(:sorted_rolls).and_return([:order_rolls_roll])
-      @menu.stub(:rolls).and_return({ :order_rolls_roll => OrderRollsRoll })
+      allow(@menu).to receive(:sorted_rolls).and_return([:order_rolls_roll])
+      allow(@menu).to receive(:rolls).and_return({ :order_rolls_roll => OrderRollsRoll })
     end
 
     after do

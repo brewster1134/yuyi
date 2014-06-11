@@ -33,7 +33,15 @@ If a roll accepts arguments, indent the key/value pairs below the roll name.  Yo
 ### Development
 
 ##### Dependencies
-* rspec
+* ruby
+* bundler
+
+##### Running Tests
+Run tests using rspec through guard
+
+```sh
+bundle exec guard
+```
 
 ##### Writing Rolls
 ###### _required_

@@ -155,6 +155,10 @@ module Yuyi::Cli
     File.open(File.expand_path(file), 'w') { |f| f.write(new_text) }
   end
 
+  def osx_version
+    run '/usr/bin/sw_vers -productVersion'.chomp[/10\.\d+/].to_f
+  end
+
 private
 
   def start

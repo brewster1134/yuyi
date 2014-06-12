@@ -14,7 +14,7 @@ def download_app
 end
 
 def install
-  system "ruby #{install_dir}/bin/yuyi"
+  system "ruby #{install_dir}/bin/yuyi -V"
 end
 
 def cleanup

@@ -120,6 +120,7 @@ module Yuyi::Cli
 
     if verbose
       say "RUNNING: #{command}", :type => (success ? :success : :fail)
+      say output
     end
 
     args[:boolean] ? success : output

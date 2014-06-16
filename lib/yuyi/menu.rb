@@ -1,7 +1,5 @@
 class Yuyi::Menu
   @rolls = {}
-  @pre_installs = []
-  @post_installs = []
 
   # DSL Helper methods
   #
@@ -59,22 +57,6 @@ class Yuyi::Menu
     @rolls[file_name] = klass.new
   end
 
-  def self.add_pre_install block
-    @pre_installs << block
-  end
-
-  def self.add_post_install block
-    @post_installs << block
-  end
-
-  def self.pre_install
-    @pre_installs.each { |b| b.call }
-  end
-
-  def self.post_install
-    @post_installs.each { |b| b.call }
-  end
-
   # Get/Set upgrade flag
   #
   def upgrade? boolean = nil
@@ -112,13 +94,22 @@ class Yuyi::Menu
   # Initialize all the rolls in order
   #
   def order_rolls
-    Yuyi::Menu.pre_install
+    all_rolls = sorted_rolls
 
-    sorted_rolls.each do |file_name|
-      rolls[file_name].order
+    # run all preinstalls first
+    all_rolls.each do |file_name|
+      rolls[file_name].appetizers
     end
 
-    Yuyi::Menu.post_install
+    # then run all installs
+    all_rolls.each do |file_name|
+      rolls[file_name].entree
+    end
+
+    # then post installs last
+    all_rolls.each do |file_name|
+      rolls[file_name].dessert
+    end
   end
 
   # Find the best roll in the source to be added

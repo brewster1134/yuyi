@@ -4,8 +4,6 @@ describe Yuyi::Roll do
   before do
     allow(Yuyi::Menu).to receive :add_roll
     allow(Yuyi::Menu).to receive :find_roll
-    allow(Yuyi::Menu).to receive :add_pre_install
-    allow(Yuyi::Menu).to receive :add_post_install
     allow(Yuyi::Menu).to receive(:options).and_return({ :foo => 'menu option' })
     allow(Yuyi::Menu).to receive(:on_the_menu?).and_return false
 
@@ -36,8 +34,6 @@ describe Yuyi::Roll do
   after do
     allow(Yuyi::Menu).to receive(:add_roll).and_call_original
     allow(Yuyi::Menu).to receive(:find_roll).and_call_original
-    allow(Yuyi::Menu).to receive(:add_pre_install).and_call_original
-    allow(Yuyi::Menu).to receive(:add_post_install).and_call_original
     allow(Yuyi::Menu).to receive(:options).and_call_original
     allow(Yuyi::Menu).to receive(:on_the_menu?).and_call_original
   end
@@ -72,7 +68,7 @@ describe Yuyi::Roll do
     end
 
     it 'should respond to .pre_install' do
-      expect(Yuyi::Menu).to have_received(:add_pre_install)
+      expect(TestRoll.pre_install).to be_a Proc
     end
 
     it 'should respond to .install' do
@@ -80,7 +76,7 @@ describe Yuyi::Roll do
     end
 
     it 'should respond to .post_install' do
-      expect(Yuyi::Menu).to have_received(:add_post_install)
+      expect(TestRoll.post_install).to be_a Proc
     end
 
     it 'should respond to .uninstall' do
@@ -121,8 +117,16 @@ describe Yuyi::Roll do
       expect(@test_roll.dependencies).to eq([:foo])
     end
 
+    it 'should return the pre_install results' do
+      expect(@test_roll.send(:pre_install)).to eq :pre_install
+    end
+
     it 'should return the install results' do
       expect(@test_roll.send(:install)).to eq :install
+    end
+
+    it 'should return the post_install results' do
+      expect(@test_roll.send(:post_install)).to eq :post_install
     end
 
     it 'should return the uninstall results' do

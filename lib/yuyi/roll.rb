@@ -13,7 +13,7 @@ class Yuyi::Roll
   end
 
   def self.pre_install &block
-    Yuyi::Menu.add_pre_install block
+    @pre_install ||= block
   end
 
   def self.install &block
@@ -21,7 +21,7 @@ class Yuyi::Roll
   end
 
   def self.post_install &block
-    Yuyi::Menu.add_post_install block
+    @post_install ||= block
   end
 
   def self.uninstall &block
@@ -85,7 +85,7 @@ class Yuyi::Roll
 
   # Run the roll
   #
-  def order
+  def install
     if installed?
       if options[:uninstall]
         Yuyi.say "🍣\s Uninstalling #{title}...", :color => 33
@@ -99,6 +99,14 @@ class Yuyi::Roll
       install
     end
   end
+  alias_method :order, :install
+  alias_method :entree, :install
+
+  def pre_install; pre_install; end
+  alias_method :appetizers, :pre_install
+
+  def post_install; post_install; end
+  alias_method :dessert, :pre_install
 
 private
 
@@ -126,8 +134,16 @@ private
       end
     end
 
+    def pre_install
+      instance_eval(&self.class.pre_install)
+    end
+
     def install
       instance_eval(&self.class.install)
+    end
+
+    def post_install
+      instance_eval(&self.class.post_install)
     end
 
     def uninstall
@@ -146,6 +162,7 @@ private
     def say *args; Yuyi.say *args; end
     def run *args; Yuyi.run *args; end
     def command? *args; Yuyi.command? *args; end
+    def osx_version; Yuyi.osx_version; end
 
     def on_the_menu? roll
       Yuyi::Menu.on_the_menu? roll

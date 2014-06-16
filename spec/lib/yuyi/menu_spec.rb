@@ -26,40 +26,6 @@ describe Yuyi::Menu do
     end
   end
 
-  describe '.pre_install' do
-    before do
-      @pre_install = lambda {}
-      Yuyi::Menu.instance_var :pre_installs, [@pre_install,]
-      allow(@pre_install).to receive(:call)
-      Yuyi::Menu.pre_install
-    end
-
-    after do
-      allow(@pre_install).to receive(:call).and_call_original
-    end
-
-    it 'should run pre_installs' do
-      expect(@pre_install).to have_received(:call)
-    end
-  end
-
-  describe '.post_install' do
-    before do
-      @post_install = lambda {}
-      Yuyi::Menu.instance_var :post_installs, [@post_install,]
-      allow(@post_install).to receive(:call)
-      Yuyi::Menu.post_install
-    end
-
-    after do
-      allow(@post_install).to receive(:call).and_call_original
-    end
-
-    it 'should run post_installs' do
-      expect(@post_install).to have_received(:call)
-    end
-  end
-
   describe '#initialize' do
     it 'should set the path var' do
       expect(@menu.var(:path)).to eq 'spec/fixtures/menu.yaml'
@@ -180,28 +146,33 @@ describe Yuyi::Menu do
 
   describe '#order_rolls' do
     before do
-      class MenuOrderRollsRoll; end
-      allow(MenuOrderRollsRoll).to receive :order
+      class MenuOrderRollsOne; end
+      class MenuOrderRollsTwo; end
+      allow(MenuOrderRollsOne).to receive :appetizers
+      allow(MenuOrderRollsTwo).to receive :appetizers
+      allow(MenuOrderRollsOne).to receive :entree
+      allow(MenuOrderRollsTwo).to receive :entree
+      allow(MenuOrderRollsOne).to receive :dessert
+      allow(MenuOrderRollsTwo).to receive :dessert
 
-      allow(Yuyi::Menu).to receive(:pre_install)
-      allow(Yuyi::Menu).to receive(:post_install)
-      allow(@menu).to receive(:sorted_rolls).and_return([:order_rolls_roll])
-      allow(@menu).to receive(:rolls).and_return({ :order_rolls_roll => MenuOrderRollsRoll })
+      allow(@menu).to receive(:sorted_rolls).and_return([:menu_order_rolls_one, :menu_order_rolls_two])
+      allow(@menu).to receive(:rolls).and_return({ :menu_order_rolls_one => MenuOrderRollsOne,  :menu_order_rolls_two => MenuOrderRollsTwo })
 
       @menu.send :order_rolls
     end
 
     after do
-      allow(Yuyi::Menu).to receive(:pre_install).and_call_original
-      allow(Yuyi::Menu).to receive(:post_install).and_call_original
       allow(@menu).to receive(:sorted_rolls).and_call_original
       allow(@menu).to receive(:rolls).and_call_original
     end
 
     it 'should initialize a roll with the roll options' do
-      expect(Yuyi::Menu).to have_received(:pre_install).ordered
-      expect(MenuOrderRollsRoll).to have_received(:order).ordered
-      expect(Yuyi::Menu).to have_received(:post_install).ordered
+      expect(MenuOrderRollsOne).to have_received(:appetizers).ordered
+      expect(MenuOrderRollsTwo).to have_received(:appetizers).ordered
+      expect(MenuOrderRollsOne).to have_received(:entree).ordered
+      expect(MenuOrderRollsTwo).to have_received(:entree).ordered
+      expect(MenuOrderRollsOne).to have_received(:dessert).ordered
+      expect(MenuOrderRollsTwo).to have_received(:dessert).ordered
     end
   end
 end

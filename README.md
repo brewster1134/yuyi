@@ -107,15 +107,11 @@ end
 ```
 
 ### TODO
-* setup (post suite install tasks)
-* write to file checks for existing lines
 * Enforce required options
 * New roll generator (use new!)
 * DOCS!
 * show roll options on -l
 * home brew/home brew cask roll to inherit
 * installation summary
-* abort install if required options arent set
-* post install commands
 
 [.](http://www.comedycentral.com/video-clips/3myds9/upright-citizens-brigade-sushi-chef)

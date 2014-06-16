@@ -133,9 +133,12 @@ module Yuyi::Cli
   # Write several lines to to an existing file
   #
   def write_to_file file, *text
-    File.open(File.expand_path(file), 'a') do |file|
-      file.write text * "\n"
-      file.write "\n"
+    File.open(File.expand_path(file), 'a+') do |file|
+      full_text = (text * "\n") + "\n"
+
+      unless file.read.include? full_text
+        file.write full_text
+      end
     end
   end
 

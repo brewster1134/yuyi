@@ -136,6 +136,11 @@ describe Yuyi::Cli do
       CliTest.write_to_file 'test', 'arg1', 'arg2'
       expect(File.open('test').read).to eq "foo\narg1\narg2\n"
     end
+
+    it 'should not add a line if it already exists' do
+      CliTest.write_to_file 'test', 'foo'
+      expect(File.open('test').read).to eq "foo\n"
+    end
   end
 
   describe '#delete_from_file' do

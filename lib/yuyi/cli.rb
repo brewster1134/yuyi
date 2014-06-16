@@ -159,7 +159,7 @@ module Yuyi::Cli
   end
 
   def osx_version
-    run '/usr/bin/sw_vers -productVersion'.chomp[/10\.\d+/].to_f
+    run('/usr/bin/sw_vers -productVersion').chomp[/10\.\d+/].to_f
   end
 
 private

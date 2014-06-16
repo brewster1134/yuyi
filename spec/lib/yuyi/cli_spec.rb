@@ -163,6 +163,12 @@ describe Yuyi::Cli do
     end
   end
 
+  describe '#osx_version' do
+    it 'should return a float' do
+      expect(CliTest.osx_version).to be_a Float
+    end
+  end
+
   describe '#get_menu' do
     before do
       stub_const 'Yuyi::DEFAULT_MENU', 'spec/fixtures/menu.yaml'

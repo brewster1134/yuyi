@@ -135,6 +135,7 @@ private
     end
 
     def pre_install
+      return unless self.class.pre_install
       instance_eval(&self.class.pre_install)
     end
 
@@ -143,6 +144,7 @@ private
     end
 
     def post_install
+      return unless self.class.post_install
       instance_eval(&self.class.post_install)
     end
 

@@ -107,7 +107,7 @@ module Yuyi::Cli
     end.rstrip
 
     say
-    yield output
+    yield output if block
   end
 
   # Run a command and output formatting success/errors

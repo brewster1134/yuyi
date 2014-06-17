@@ -160,6 +160,7 @@ private
 
     # Helpers for Yuyi Cli methods
     def say *args; Yuyi.say *args; end
+    def ask *args; Yuyi.ask *args; end
     def run *args; Yuyi.run *args; end
     def command? *args; Yuyi.command? *args; end
     def osx_version; Yuyi.osx_version; end

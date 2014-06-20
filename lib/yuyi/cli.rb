@@ -166,10 +166,10 @@ private
 
   def start
     header
-    check_root
     get_menu
     confirm_upgrade
     confirm_options
+    authenticate
     Yuyi::Menu.instance.order_rolls
   end
 
@@ -243,21 +243,23 @@ private
     end
   end
 
-  def check_root
-    if run('whoami').chomp != 'root'
-      char_count = 80
-      say ('=' * char_count), :type => :fail
-      say 'You must run Yuyi using sudo!', :padding => char_count, :justify => 'center', :type => :warn
-      say 'Yuyi may run several system commands that require root access.', :padding => char_count, :justify => 'center', :type => :warn
-      say 'Without sudo, your installation must be supervised.', :padding => char_count, :justify => 'center', :type => :warn
-      say 'You may be prompted for a password several times.', :padding => char_count, :justify => 'center', :type => :warn
-      say ('=' * char_count), :type => :fail
-      say
-      ask 'To continue WITHOUT sudo, press `Y`.  Any other key will exit.', :type => :warn do |response|
-        exit if response != 'Y'
+  def authenticate
+    say 'Please enter the admin password', :type => :warn
+    say 'NOTE: This is passed directly to sudo and is not saved.'
+    say '      This will ensure all your installs run unsupervised.'
+
+    # clear sudo timestamp & run any command as admin to force a password prompt
+    system 'sudo -k; sudo echo >> /dev/null 2>&1'
+
+    # keep the sudo timestamp fresh
+    Thread::new do
+      loop do
+        sleep 1.minute
+        `sudo -v`
       end
-      say
     end
+
+    say
   end
 
   # Show formatted options

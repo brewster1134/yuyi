@@ -7,7 +7,7 @@ describe Yuyi::Roll do
     allow(Yuyi::Menu).to receive(:options).and_return({ :foo => 'menu option' })
     allow(Yuyi::Menu).to receive(:on_the_menu?).and_return false
 
-    class TestRoll < Yuyi::Roll
+    class Yuyi::TestRoll < Yuyi::Roll
       pre_install { :pre_install }
       install { :install }
       post_install { :post_install }
@@ -38,18 +38,30 @@ describe Yuyi::Roll do
     allow(Yuyi::Menu).to receive(:on_the_menu?).and_call_original
   end
 
+  describe '.class_to_title' do
+    it 'should render a title' do
+      expect(Yuyi::Roll.class_to_title('Yuyi::RollModel::FooBar')).to eq 'Foo Bar'
+    end
+  end
+
+  describe '.caller_to_file_name' do
+    it 'should render a file name' do
+      expect(Yuyi::Roll.caller_to_file_name(['/foo/bar/foo_bar.rb'])).to eq :foo_bar
+    end
+  end
+
   context 'when inherited' do
     it 'should add the roll to the menu' do
       allow(Yuyi::Menu).to receive :add_roll
 
-      class TestInheritRoll < Yuyi::Roll
+      class Yuyi::TestInheritRoll < Yuyi::Roll
         install {}
         uninstall {}
         upgrade {}
         installed? {}
       end
 
-      expect(Yuyi::Menu).to have_received(:add_roll).with :roll_spec, TestInheritRoll
+      expect(Yuyi::Menu).to have_received(:add_roll).with :roll_spec, Yuyi::TestInheritRoll
     end
 
     # DSL Methods
@@ -60,49 +72,49 @@ describe Yuyi::Roll do
     end
 
     it 'should create a title' do
-      expect(TestRoll.title).to eq 'Test Roll'
+      expect(Yuyi::TestRoll.title).to eq 'Test Roll'
     end
 
     it 'should create a file name' do
-      expect(TestRoll.file_name).to eq :roll_spec
+      expect(Yuyi::TestRoll.file_name).to eq :roll_spec
     end
 
     it 'should respond to .pre_install' do
-      expect(TestRoll.pre_install).to be_a Proc
+      expect(Yuyi::TestRoll.pre_install).to be_a Proc
     end
 
     it 'should respond to .install' do
-      expect(TestRoll.install).to be_a Proc
+      expect(Yuyi::TestRoll.install).to be_a Proc
     end
 
     it 'should respond to .post_install' do
-      expect(TestRoll.post_install).to be_a Proc
+      expect(Yuyi::TestRoll.post_install).to be_a Proc
     end
 
     it 'should respond to .uninstall' do
-      expect(TestRoll.uninstall).to be_a Proc
+      expect(Yuyi::TestRoll.uninstall).to be_a Proc
     end
 
     it 'should respond to .upgrade' do
-      expect(TestRoll.upgrade).to be_a Proc
+      expect(Yuyi::TestRoll.upgrade).to be_a Proc
     end
 
     it 'should respond to .installed?' do
-      expect(TestRoll.installed?).to be_a Proc
+      expect(Yuyi::TestRoll.installed?).to be_a Proc
     end
 
     it 'should return .dependencies' do
-      expect(TestRoll.dependencies).to eq([:foo])
+      expect(Yuyi::TestRoll.dependencies).to eq([:foo])
     end
 
     it 'should return .options' do
-      expect(TestRoll.options[:foo][:default]).to eq 'foo default'
+      expect(Yuyi::TestRoll.options[:foo][:default]).to eq 'foo default'
     end
   end
 
   context 'when initialized' do
     before do
-      @test_roll = TestRoll.new
+      @test_roll = Yuyi::TestRoll.new
     end
 
     it 'should return the title' do
@@ -165,7 +177,7 @@ describe Yuyi::Roll do
 
   context '#order' do
     before do
-      @roll = TestRoll.new
+      @roll = Yuyi::TestRoll.new
       allow(@roll).to receive(:install)
       allow(@roll).to receive(:uninstall)
       allow(@roll).to receive(:upgrade)
@@ -215,5 +227,42 @@ describe Yuyi::Roll do
         end
       end
     end
+  end
+end
+
+describe 'Yuyi::RollModel' do
+  before do
+    allow(Yuyi::Menu).to receive(:add_roll)
+
+    class Yuyi::FooRollModel < Yuyi::Roll
+      def self.inherited  klass
+        @@name = 'Foo Name'
+        super klass
+      end
+    end
+
+    class Yuyi::FooModelRoll < Yuyi::FooRollModel
+      install do
+        @@name
+      end
+    end
+  end
+
+  after do
+    allow(Yuyi::Menu).to receive(:add_roll).and_call_original
+  end
+
+  it 'should not add the roll model' do
+    class Yuyi::BarRollModel < Yuyi::Roll; end
+    expect(Yuyi::Menu).to_not have_received(:add_roll).with :roll_spec, Yuyi::BarRollModel
+  end
+
+  it 'should add the inherited roll' do
+    class Yuyi::FooInheritedRoll < Yuyi::FooRollModel; end
+    expect(Yuyi::Menu).to have_received(:add_roll).with :roll_spec, Yuyi::FooInheritedRoll
+  end
+
+  it 'should use the roll model methods' do
+    expect(Yuyi::FooModelRoll.new.send(:install)).to eq 'Foo Name'
   end
 end

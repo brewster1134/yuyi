@@ -117,13 +117,23 @@ private
     # Add to global collection of rolls
     #
     def self.inherited klass
-      # convert class name to a human readble title-cased string
-      klass.title klass.to_s.gsub(/(?=[A-Z])/, ' ').strip
+      return if klass.to_s.include? 'RollModel'
 
-      # convert absolute path to a file name symbol
-      klass.file_name caller.first[/[a-z_]+?(?=\.rb)/].to_sym
+      # convert class name to a title string
+      klass.title class_to_title klass
+
+      # convert caller to a file name symbol
+      klass.file_name caller_to_file_name caller
 
       Yuyi::Menu.add_roll klass.file_name, klass
+    end
+
+    def self.class_to_title klass
+      klass.to_s.match(/[^:]+$/)[0].gsub(/(?=[A-Z])/, ' ').strip
+    end
+
+    def self.caller_to_file_name caller
+      caller.first[/[a-z_]+?(?=\.rb)/].to_sym
     end
 
     def self.require_dependencies

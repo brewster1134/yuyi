@@ -21,7 +21,7 @@ private
 
       create_tmp_dir
       download_source
-      get_available_rolls
+      process_files
     end
 
     def create_tmp_dir
@@ -91,14 +91,21 @@ private
 
     # Get source rolls from tmp directory
     #
-    def get_available_rolls
+    def process_files
       Dir.glob(File.join(@tmp_dir, ROLL_FILE_GLOB)).map do |r|
-        name = File.basename(r, '.rb').to_sym
-        tmp_path = Pathname.new @@root_tmp_dir
-        full_path = Pathname.new r
-        require_path = full_path.relative_path_from(tmp_path).to_s.chomp('.rb')
+        # if its a roll model, require it
+        if r.include?('roll_model.rb')
+          require r
 
-        @available_rolls[name] = require_path
+        # otherwise add the roll
+        else
+          name = File.basename(r, '.rb').to_sym
+          tmp_path = Pathname.new @@root_tmp_dir
+          full_path = Pathname.new r
+          require_path = full_path.relative_path_from(tmp_path).to_s.chomp('.rb')
+
+          @available_rolls[name] = require_path
+        end
       end
     end
 

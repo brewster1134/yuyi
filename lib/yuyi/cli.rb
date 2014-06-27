@@ -133,6 +133,8 @@ module Yuyi::Cli
   # Write several lines to to an existing file
   #
   def write_to_file file, *text
+    text.flatten!
+
     File.open(File.expand_path(file), 'a+') do |file|
       full_text = (text * "\n") + "\n"
 
@@ -145,6 +147,8 @@ module Yuyi::Cli
   # Delete specific lines from an existing file
   #
   def delete_from_file file, *text
+    text.flatten!
+
     # get file text
     new_text = File.read(File.expand_path(file))
 

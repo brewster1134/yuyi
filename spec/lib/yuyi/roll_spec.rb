@@ -239,12 +239,16 @@ describe 'Yuyi::RollModel' do
         @@name = 'Foo Name'
         super klass
       end
+
+      installed? { false }
     end
 
     class Yuyi::FooModelRoll < Yuyi::FooRollModel
       install do
         @@name
       end
+
+      installed? { true }
     end
   end
 
@@ -264,5 +268,9 @@ describe 'Yuyi::RollModel' do
 
   it 'should use the roll model methods' do
     expect(Yuyi::FooModelRoll.new.send(:install)).to eq 'Foo Name'
+  end
+
+  it 'should prefer the roll methods over the model methods' do
+    expect(Yuyi::FooModelRoll.new.send(:installed?)).to be true
   end
 end

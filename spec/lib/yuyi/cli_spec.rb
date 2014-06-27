@@ -115,51 +115,67 @@ describe Yuyi::Cli do
   end
 
   describe '#write_to_file' do
-    before do
-      CliTest.write_to_file 'test', 'foo'
-    end
-
     after do
-      FileUtils.rm 'test'
+      FileUtils.rm Dir.glob('write_to_file*')
     end
 
     it 'should create a file if it doesnt exist' do
-      expect(File.exists?('test')).to be true
+      CliTest.write_to_file 'write_to_file_create', 'foo'
+
+      expect(File.exists?('write_to_file_create')).to be true
     end
 
     it 'should append to the file' do
-      CliTest.write_to_file 'test', 'bar'
-      expect(File.open('test').read).to eq "foo\nbar\n"
+      CliTest.write_to_file 'write_to_file_append', 'foo'
+      CliTest.write_to_file 'write_to_file_append', 'bar'
+
+      expect(File.open('write_to_file_append').read).to eq "foo\nbar\n"
     end
 
-    it 'should accept multiple text arguments' do
-      CliTest.write_to_file 'test', 'arg1', 'arg2'
-      expect(File.open('test').read).to eq "foo\narg1\narg2\n"
+    it 'should accept multiple string arguments' do
+      CliTest.write_to_file 'write_to_file_strings', 'line 1', 'line 2'
+
+      expect(File.open('write_to_file_strings').read).to eq "line 1\nline 2\n"
+    end
+
+    it 'should accept an array argument' do
+      CliTest.write_to_file 'write_to_file_array', ['line 1', 'line 2']
+
+      expect(File.open('write_to_file_array').read).to eq "line 1\nline 2\n"
     end
 
     it 'should not add a line if it already exists' do
-      CliTest.write_to_file 'test', 'foo'
-      expect(File.open('test').read).to eq "foo\n"
+      CliTest.write_to_file 'write_to_file_exists', 'foo'
+      CliTest.write_to_file 'write_to_file_exists', 'foo'
+
+      expect(File.open('write_to_file_exists').read).to eq "foo\n"
     end
   end
 
   describe '#delete_from_file' do
-    before do
-      CliTest.write_to_file 'test', 'foo', 'remove1', 'remove2', 'bar'
-    end
-
     after do
-      FileUtils.rm 'test'
+      FileUtils.rm Dir.glob('delete_from_file*')
     end
 
     it 'should remove a line from the file' do
-      CliTest.delete_from_file 'test', 'remove1'
-      expect(File.open('test').read).to eq "foo\nremove2\nbar\n"
+      CliTest.write_to_file 'delete_from_file', 'foo', 'remove', 'bar'
+      CliTest.delete_from_file 'delete_from_file', 'remove'
+
+      expect(File.open('delete_from_file').read).to eq "foo\nbar\n"
     end
 
-    it 'should accept multiple text arguments' do
-      CliTest.delete_from_file 'test', 'remove1', 'remove2'
-      expect(File.open('test').read).to eq "foo\nbar\n"
+    it 'should accept multiple string arguments' do
+      CliTest.write_to_file 'delete_from_file_strings', 'foo', 'remove 1', 'remove 2', 'bar'
+      CliTest.delete_from_file 'delete_from_file_strings', 'remove 1', 'remove 2'
+
+      expect(File.open('delete_from_file_strings').read).to eq "foo\nbar\n"
+    end
+
+    it 'should accept an array argument' do
+      CliTest.write_to_file 'delete_from_file_array', 'foo', 'remove 1', 'remove 2', 'bar'
+      CliTest.delete_from_file 'delete_from_file_array', ['remove 1', 'remove 2']
+
+      expect(File.open('delete_from_file_array').read).to eq "foo\nbar\n"
     end
   end
 

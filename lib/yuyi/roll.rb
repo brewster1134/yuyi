@@ -13,27 +13,51 @@ class Yuyi::Roll
   end
 
   def self.pre_install &block
-    @pre_install ||= block
+    if block
+      @pre_install = block
+    else
+      @pre_install
+    end
   end
 
   def self.install &block
-    @install ||= block
+    if block
+      @install = block
+    else
+      @install
+    end
   end
 
   def self.post_install &block
-    @post_install ||= block
+    if block
+      @post_install = block
+    else
+      @post_install
+    end
   end
 
   def self.uninstall &block
-    @uninstall ||= block
+    if block
+      @uninstall = block
+    else
+      @uninstall
+    end
   end
 
   def self.upgrade &block
-    @upgrade ||= block
+    if block
+      @upgrade = block
+    else
+      @upgrade
+    end
   end
 
   def self.installed? &block
-    @installed ||= block
+    if block
+      @installed = block
+    else
+      @installed
+    end
   end
 
   def self.dependencies *dependencies

@@ -143,6 +143,10 @@ private
     def self.inherited klass
       return if klass.to_s.include? 'RollModel'
 
+      add_roll klass, caller
+    end
+
+    def self.add_roll klass, caller
       # convert class name to a title string
       klass.title class_to_title klass
 

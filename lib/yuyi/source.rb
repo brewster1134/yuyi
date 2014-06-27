@@ -6,6 +6,7 @@ class Yuyi::Source
   ROLL_FILE_GLOB = '**/*.rb'
 
   def available_rolls; @available_rolls end
+  def roll_models; @roll_models end
 
 private
 
@@ -16,6 +17,7 @@ private
 
     def initialize name, path
       @available_rolls = {}
+      @roll_models = {}
       @name = name
       @path = path
 
@@ -93,17 +95,16 @@ private
     #
     def process_files
       Dir.glob(File.join(@tmp_dir, ROLL_FILE_GLOB)).map do |r|
-        # if its a roll model, require it
+        name = File.basename(r, '.rb').to_sym
+
+        tmp_path = Pathname.new @@root_tmp_dir
+        full_path = Pathname.new r
+        require_path = full_path.relative_path_from(tmp_path).to_s.chomp('.rb')
+
+        # if add file to the correct hash
         if r.include?('roll_model.rb')
-          require r
-
-        # otherwise add the roll
+          @roll_models[name] = require_path
         else
-          name = File.basename(r, '.rb').to_sym
-          tmp_path = Pathname.new @@root_tmp_dir
-          full_path = Pathname.new r
-          require_path = full_path.relative_path_from(tmp_path).to_s.chomp('.rb')
-
           @available_rolls[name] = require_path
         end
       end

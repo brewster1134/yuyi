@@ -252,9 +252,6 @@ private
     say 'NOTE: This is passed directly to sudo and is not saved.'
     say '      This will ensure all your installs run unsupervised.'
 
-    # clear sudo timestamp & run any command as admin to force a password prompt
-    system 'sudo -k; sudo echo >> /dev/null 2>&1'
-
     # keep the sudo timestamp fresh
     Thread::new do
       loop do
@@ -280,8 +277,10 @@ private
       say "#{k.to_s.rjust(longest_option)}: ", :color => option_color, :newline => false
       say v[:description]
       say (' ' * (longest_option + indent)), :newline => false
-      say 'default: ', :color => 36, :newline => false
-      say v[:default]
+      if v[:default]
+        say 'default: ', :color => 36, :newline => false
+        say v[:default]
+      end
     end
 
     if examples

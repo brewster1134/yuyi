@@ -235,15 +235,16 @@ describe 'Yuyi::RollModel' do
     allow(Yuyi::Menu).to receive(:add_roll)
 
     class Yuyi::FooRollModel < Yuyi::Roll
-      def self.inherited  klass
-        @@name = 'Foo Name'
-        super klass
+      def self.inherited klass; add_roll klass, caller; end
+      def self.foo_name  name
+        @@name = name
+        installed? { false }
       end
 
-      installed? { false }
     end
 
     class Yuyi::FooModelRoll < Yuyi::FooRollModel
+      foo_name 'Foo Name'
       install do
         @@name
       end

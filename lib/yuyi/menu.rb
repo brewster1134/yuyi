@@ -139,6 +139,19 @@ class Yuyi::Menu
     Yuyi.say
   end
 
+  # Find the best roll in the source to be added
+  #
+  def find_roll_model name, path
+    # look through the sources for the first roll model that matches.
+    # sources are listed in the menu in order of priority
+    sources.each do |source|
+      if path = source.roll_models[name]
+        require path
+        return
+      end
+    end
+  end
+
 private
 
     def initialize path
@@ -148,7 +161,25 @@ private
       @@instance = self
 
       set_sources
+      set_roll_models
       set_rolls
+    end
+
+    # Create all rolls on the menu
+    #
+    def set_roll_models
+      object[:roll_models] = {}
+
+      # collect all roll models from all sources
+      sources.each do |source|
+        source.roll_models.each do |name, path|
+          object[:roll_models][name] = path
+        end
+      end
+
+      object[:roll_models].each do |name, path|
+        find_roll_model name, path
+      end
     end
 
     # Create all rolls on the menu

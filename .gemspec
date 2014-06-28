@@ -12,7 +12,7 @@ Gem::Specification.new do |s|
   s.name = 'yuyi'
   s.summary = 'Automation for installing/uninstalling/updating your machine environment'
   s.test_files = ["spec/fixtures/roll_dir/nested/bar_roll.rb", "spec/fixtures/roll_dir/nested/foo_roll.rb", "spec/lib/yuyi/cli_spec.rb", "spec/lib/yuyi/core_spec.rb", "spec/lib/yuyi/menu_spec.rb", "spec/lib/yuyi/roll_spec.rb", "spec/lib/yuyi/source_spec.rb", "spec/lib/yuyi_spec.rb", "spec/spec_helper.rb"]
-  s.version = '1.0.0'
+  s.version = '1.0.1'
   s.add_runtime_dependency 'rspec', '>= 0'
   s.add_development_dependency 'new', '>= 0'
   s.add_development_dependency 'guard', '>= 0'

@@ -7,9 +7,10 @@ require 'yuyi/roll'
 require 'yuyi/source'
 
 class Yuyi
+  require 'yaml'
   extend Yuyi::Cli
 
   NAME = 'Yuyi'
-  VERSION = '0.1.1'
+  VERSION = YAML.load(File.read(File.dirname(__FILE__) + '/../.new'))['version']
   DEFAULT_MENU = File.expand_path('~/yuyi_menu')
 end

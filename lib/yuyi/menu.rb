@@ -94,23 +94,45 @@ class Yuyi::Menu
   # Initialize all the rolls in order
   #
   def order_rolls
+    header_length = 80
     all_rolls = sorted_rolls
 
-    # run all preinstalls first
+
+    # pre installs
+    #
+    Yuyi.say '=' * header_length, :color => 35
+    Yuyi.say 'APPETIZERS', :color => 35, :justify => :center, :padding => header_length
+    Yuyi.say 'Pre Install Tasks', :justify => :center, :padding => header_length
+    Yuyi.say
+
     all_rolls.each do |file_name|
       rolls[file_name].appetizers
     end
 
-    # then run all installs
+
+    # main installs
+    #
+    Yuyi.say '=' * header_length, :color => 36
+    Yuyi.say 'ENTREES', :color => 36, :justify => :center, :padding => header_length
+    Yuyi.say 'Main Install Tasks', :justify => :center, :padding => header_length
+    Yuyi.say
+
     all_rolls.each do |file_name|
       rolls[file_name].entree
     end
 
-    # then post installs last
+
+    # post installs
+    #
+    Yuyi.say '=' * header_length, :color => 35
+    Yuyi.say 'DESSERT', :color => 35, :justify => :center, :padding => header_length
+    Yuyi.say 'Post Install Tasks', :justify => :center, :padding => header_length
+    Yuyi.say
+
     all_rolls.each do |file_name|
       rolls[file_name].dessert
     end
-  end
+
 
   # Find the best roll in the source to be added
   #

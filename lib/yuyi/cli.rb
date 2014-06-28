@@ -252,9 +252,6 @@ private
     say 'NOTE: This is passed directly to sudo and is not saved.'
     say '      This will ensure all your installs run unsupervised.'
 
-    # clear sudo timestamp & run any command as admin to force a password prompt
-    system 'sudo -k; sudo echo >> /dev/null 2>&1'
-
     # keep the sudo timestamp fresh
     Thread::new do
       loop do

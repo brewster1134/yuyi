@@ -248,9 +248,8 @@ private
   end
 
   def authenticate
-    say 'Please enter the admin password', :type => :warn
-    say 'NOTE: This is passed directly to sudo and is not saved.'
-    say '      This will ensure all your installs run unsupervised.'
+    say 'Yuyi does not need your admin password, but some installations force a prompt.', :type => :warn
+    say 'You may be asked to enter your password several times. ', :type => :warn
 
     # keep the sudo timestamp fresh
     Thread::new do

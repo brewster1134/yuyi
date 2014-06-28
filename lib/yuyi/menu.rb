@@ -102,7 +102,7 @@ class Yuyi::Menu
     #
     Yuyi.say '=' * header_length, :color => 35
     Yuyi.say 'APPETIZERS', :color => 35, :justify => :center, :padding => header_length
-    Yuyi.say 'Pre Install Tasks', :justify => :center, :padding => header_length
+    Yuyi.say 'Pre Install', :justify => :center, :padding => header_length
     Yuyi.say
 
     all_rolls.each do |file_name|
@@ -114,7 +114,7 @@ class Yuyi::Menu
     #
     Yuyi.say '=' * header_length, :color => 36
     Yuyi.say 'ENTREES', :color => 36, :justify => :center, :padding => header_length
-    Yuyi.say 'Main Install Tasks', :justify => :center, :padding => header_length
+    Yuyi.say 'Main Install', :justify => :center, :padding => header_length
     Yuyi.say
 
     all_rolls.each do |file_name|
@@ -126,7 +126,7 @@ class Yuyi::Menu
     #
     Yuyi.say '=' * header_length, :color => 35
     Yuyi.say 'DESSERT', :color => 35, :justify => :center, :padding => header_length
-    Yuyi.say 'Post Install Tasks', :justify => :center, :padding => header_length
+    Yuyi.say 'Post Install', :justify => :center, :padding => header_length
     Yuyi.say
 
     all_rolls.each do |file_name|

@@ -132,7 +132,7 @@ class Yuyi::Menu
     all_rolls.each do |file_name|
       rolls[file_name].dessert
     end
-
+  end
 
   # Find the best roll in the source to be added
   #

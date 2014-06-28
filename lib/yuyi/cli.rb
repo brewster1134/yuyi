@@ -300,7 +300,7 @@ private
 
       say
       say 'Example', :color => 33, :indent => example_indent, :newline => false
-      say examples_hash.deep_stringify_keys!.to_yaml.sub("--- ", '').gsub(/\n(\s*)/, "\n\\1#{' ' * example_indent}")
+      say examples_hash.deep_stringify_keys!.to_yaml.sub('---', '').gsub(/\n(\s*)/, "\n\\1#{' ' * example_indent}")
     end
   end
 

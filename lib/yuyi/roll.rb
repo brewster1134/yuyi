@@ -130,7 +130,7 @@ class Yuyi::Roll
   alias_method :appetizers, :pre_install
 
   def post_install; post_install; end
-  alias_method :dessert, :pre_install
+  alias_method :dessert, :post_install
 
 private
 

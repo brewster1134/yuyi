@@ -40,13 +40,13 @@ class Yuyi::Menu
   end
 
   # Attempt to load a menu from a file path
-  # defaults to previously stored @path value
   #
   def self.load_from_file path = path
     menu = begin
       File.open(File.expand_path(path))
     rescue
-      Yuyi.run "curl -sS #{path}"
+      response = Yuyi.run "curl -sS #{path}"
+      $?.success? ? response : nil
     end
 
     @object = begin

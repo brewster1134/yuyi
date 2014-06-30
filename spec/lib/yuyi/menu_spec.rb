@@ -18,11 +18,16 @@ describe Yuyi::Menu do
 
     context 'with a remote file' do
       before do
-        Yuyi::Menu.load_from_file 'https://raw.githubusercontent.com/brewster1134/Yuyi/master/spec/fixtures/menu.yaml'
+        allow(Yuyi).to receive(:run).and_return({ :foo => 'bar' }.to_yaml)
+        Yuyi::Menu.load_from_file 'file://menu.yaml'
+      end
+
+      after do
+        allow(Yuyi).to receive(:run).and_call_original
       end
 
       it 'should update the menu object' do
-        expect(@menu.object[:rolls][:foo_roll]).to eq({ :foo => 'bar' })
+        expect(@menu.object[:foo]).to eq 'bar'
       end
     end
   end

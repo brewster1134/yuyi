@@ -178,7 +178,12 @@ private
     end
 
     def install
-      instance_eval(&self.class.install)
+      begin
+        instance_eval(&self.class.install)
+      rescue
+        say "The #{self.title} roll does not have `install` defined", :type => :fail
+        exit
+      end
     end
 
     def post_install
@@ -187,15 +192,30 @@ private
     end
 
     def uninstall
-      instance_eval(&self.class.uninstall)
+       begin
+        instance_eval(&self.class.uninstall)
+      rescue
+        say "The #{self.title} roll does not have `uninstall` defined", :type => :fail
+        exit
+      end
     end
 
     def upgrade
-      instance_eval(&self.class.upgrade)
+      begin
+        instance_eval(&self.class.upgrade)
+      rescue
+        say "The #{self.title} roll does not have `upgrade` defined", :type => :fail
+        exit
+      end
     end
 
     def installed?
-      !!instance_eval(&self.class.installed?)
+      begin
+        !!instance_eval(&self.class.installed?)
+      rescue
+        say "The #{self.title} roll does not have `installed?` defined", :type => :fail
+        exit
+      end
     end
 
     # Helpers for Yuyi Cli methods

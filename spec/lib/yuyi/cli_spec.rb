@@ -6,6 +6,7 @@ describe Yuyi::Cli do
   before do
     class CliTest; extend Yuyi::Cli; end
     allow(CliTest).to receive(:say)
+    CliTest.send(:instance_variable_set, :'@path', nil)
   end
 
   describe 'CLI_OPTIONS' do
@@ -31,7 +32,7 @@ describe Yuyi::Cli do
     context 'with an invalid argument' do
       before do
         allow(CliTest).to receive :help
-        CliTest.init 'foo'
+        CliTest.init '-foo'
       end
 
       it 'should call the help method' do
@@ -52,6 +53,17 @@ describe Yuyi::Cli do
         the "#{option} option is valid" do
           expect(CliTest).to have_received(option.to_s.downcase.to_sym).twice
         end
+      end
+    end
+
+    context 'with a menu path' do
+      before do
+        allow(CliTest).to receive :start
+        CliTest.init 'foo_path'
+      end
+
+      it 'should set the path' do
+        expect(CliTest.instance_var(:path)).to eq 'foo_path'
       end
     end
   end
@@ -188,7 +200,8 @@ describe Yuyi::Cli do
   describe '#get_menu' do
     before do
       stub_const 'Yuyi::DEFAULT_MENU', 'spec/fixtures/menu.yaml'
-      allow(Yuyi::Menu).to receive(:load_from_file).and_return true
+      allow(Yuyi::Menu).to receive(:new)
+      allow(Yuyi::Menu).to receive(:load_from_file)
     end
 
     after do
@@ -201,33 +214,33 @@ describe Yuyi::Cli do
     context 'when no input is given' do
       before do
         allow(Readline).to receive(:readline).and_return('')
-        allow(Yuyi::Menu).to receive(:new).and_return(true)
+        allow(Yuyi::Menu).to receive(:load_from_file).and_return(true)
       end
 
       it 'should load the default menu' do
-        expect(Yuyi::Menu).to receive(:new).with('spec/fixtures/menu.yaml')
+        expect(Yuyi::Menu).to receive(:load_from_file).with('spec/fixtures/menu.yaml')
       end
     end
 
     context 'when an invalid path is given' do
       before do
         allow(Readline).to receive(:readline).and_return('foo', 'bar', '')
-        allow(Yuyi::Menu).to receive(:new).and_return(false, false, true)
+        allow(Yuyi::Menu).to receive(:load_from_file).and_return(false, false, true)
       end
 
       it 'should request input again' do
-        expect(Yuyi::Menu).to receive(:new).exactly(3).times
+        expect(Yuyi::Menu).to receive(:load_from_file).exactly(3).times
       end
     end
 
     context 'when a custom path is given' do
       before do
         allow(Readline).to receive(:readline).and_return('spec/fixtures/menu.yaml')
-        allow(Yuyi::Menu).to receive(:new).and_return(true)
+        allow(Yuyi::Menu).to receive(:load_from_file).and_return(true)
       end
 
       it 'should load the menu' do
-        expect(Yuyi::Menu).to receive(:new).with('spec/fixtures/menu.yaml')
+        expect(Yuyi::Menu).to receive(:load_from_file).with('spec/fixtures/menu.yaml')
       end
     end
   end

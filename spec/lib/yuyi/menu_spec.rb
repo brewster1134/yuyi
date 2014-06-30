@@ -6,12 +6,24 @@ describe Yuyi::Menu do
   end
 
   describe '.load_from_file' do
-    before do
-      Yuyi::Menu.load_from_file 'spec/fixtures/menu2.yaml'
+    context 'with a local file' do
+      before do
+        Yuyi::Menu.load_from_file 'spec/fixtures/menu2.yaml'
+      end
+
+      it 'should update the menu object' do
+        expect(@menu.object[:rolls][:foo_roll]).to eq({ :bar => 'foo' })
+      end
     end
 
-    it 'should update the menu object' do
-      expect(@menu.object[:rolls][:foo_roll]).to eq({ :bar => 'foo' })
+    context 'with a remote file' do
+      before do
+        Yuyi::Menu.load_from_file 'https://raw.githubusercontent.com/brewster1134/Yuyi/master/spec/fixtures/menu.yaml'
+      end
+
+      it 'should update the menu object' do
+        expect(@menu.object[:rolls][:foo_roll]).to eq({ :foo => 'bar' })
+      end
     end
   end
 

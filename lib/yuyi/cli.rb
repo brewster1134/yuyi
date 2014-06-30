@@ -23,6 +23,11 @@ module Yuyi::Cli
     # get the first argument as the command
     command, *rest = *args
 
+    if command && !command.include?('-')
+      @path = command
+      command, *rest = *rest
+    end
+
     # Call options method if valid argument is passed
     # This checks for the full name or the first letter, proceeded by '--' or '-' respectively
     CLI_OPTIONS.keys.each do |option|
@@ -198,18 +203,16 @@ private
   # Ask the user for a menu file to load
   #
   def get_menu
-    menu = nil
-
-    until menu
+    until @path
       say 'Navigate to a menu file...', :type => :success
-      menu = ask "...or just press enter to load `#{Yuyi::DEFAULT_MENU}`", :readline => true, :color => 36 do |path|
+      @path = ask "...or just press enter to load `#{Yuyi::DEFAULT_MENU}`", :readline => true, :color => 36 do |path|
         path = path.empty? ? Yuyi::DEFAULT_MENU : path
 
         if Yuyi::Menu.load_from_file path
           say 'Downloading Sources... Please Wait', :type => :warn
           say
 
-          Yuyi::Menu.new path
+          path
         else
           say 'Invalid Path... Please check the location of your menu file', :type => :fail
           say
@@ -218,6 +221,8 @@ private
         end
       end
     end
+
+    Yuyi::Menu.new @path
   end
 
   # Ask to check for upgrades

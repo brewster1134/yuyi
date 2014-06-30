@@ -43,8 +43,14 @@ class Yuyi::Menu
   # defaults to previously stored @path value
   #
   def self.load_from_file path = path
+    menu = begin
+      File.open(File.expand_path(path))
+    rescue
+      Yuyi.run "curl -sS #{path}"
+    end
+
     @object = begin
-      YAML.load(File.open(File.expand_path(path))).deep_symbolize_keys!
+      YAML.load(menu).deep_symbolize_keys!
     rescue
       nil
     end

@@ -23,7 +23,8 @@ module Yuyi::Cli
     # get the first argument as the command
     command, *rest = *args
 
-    if command && !command.include?('-')
+    # if not an option, assume it is a custom path
+    if command && command[0] != '-'
       @path = command
       command, *rest = *rest
     end

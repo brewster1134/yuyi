@@ -138,6 +138,12 @@ class Yuyi::Menu
     all_rolls.each do |file_name|
       rolls[file_name].dessert
     end
+
+
+    Yuyi.say '=' * header_length, :color => 36
+    Yuyi.say 'YUYI COMPLETED', :color => 36, :justify => :center, :padding => header_length
+    Yuyi.say '=' * header_length, :color => 36
+    Yuyi.say
   end
 
   # Find the best roll in the source to be added

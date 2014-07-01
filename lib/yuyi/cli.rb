@@ -172,204 +172,206 @@ module Yuyi::Cli
     run('/usr/bin/sw_vers -productVersion').chomp[/10\.\d+/].to_f
   end
 
+  def verbose?; @verbose; end
+
 private
 
-  def start
-    header
-    get_menu
-    confirm_upgrade
-    confirm_options
-    authenticate
-    Yuyi::Menu.instance.order_rolls
-  end
+    def start
+      header
+      get_menu
+      confirm_upgrade
+      confirm_options
+      authenticate
+      Yuyi::Menu.instance.order_rolls
+    end
 
-  def header
-    line_length = 50
-    say
-    say '-' * line_length, :color => 4
-    say
-    say '____    ____  __    __  ____    ____  __  ', :color => 31, :justify => :center, :padding => line_length
-    say '\   \  /   / |  |  |  | \   \  /   / |  | ', :color => 32, :justify => :center, :padding => line_length
-    say ' \   \/   /  |  |  |  |  \   \/   /  |  | ', :color => 33, :justify => :center, :padding => line_length
-    say '  \_    _/   |  |  |  |   \_    _/   |  | ', :color => 34, :justify => :center, :padding => line_length
-    say '    |  |     |  `--\'  |     |  |     |  | ', :color => 35, :justify => :center, :padding => line_length
-    say '    |__|      \______/      |__|     |__| ', :color => 36, :justify => :center, :padding => line_length
-    say
-    say "VERSION #{Yuyi::VERSION}", :justify => :center, :padding => line_length
-    say
-    say '-' * line_length, :color => 4
-    say
-  end
+    def header
+      line_length = 50
+      say
+      say '-' * line_length, :color => 4
+      say
+      say '____    ____  __    __  ____    ____  __  ', :color => 31, :justify => :center, :padding => line_length
+      say '\   \  /   / |  |  |  | \   \  /   / |  | ', :color => 32, :justify => :center, :padding => line_length
+      say ' \   \/   /  |  |  |  |  \   \/   /  |  | ', :color => 33, :justify => :center, :padding => line_length
+      say '  \_    _/   |  |  |  |   \_    _/   |  | ', :color => 34, :justify => :center, :padding => line_length
+      say '    |  |     |  `--\'  |     |  |     |  | ', :color => 35, :justify => :center, :padding => line_length
+      say '    |__|      \______/      |__|     |__| ', :color => 36, :justify => :center, :padding => line_length
+      say
+      say "VERSION #{Yuyi::VERSION}", :justify => :center, :padding => line_length
+      say
+      say '-' * line_length, :color => 4
+      say
+    end
 
-  # Ask the user for a menu file to load
-  #
-  def get_menu
-    until @path
-      say 'Navigate to a menu file...', :type => :success
-      @path = ask "...or just press enter to load `#{Yuyi::DEFAULT_MENU}`", :readline => true, :color => 36 do |path|
-        path = path.empty? ? Yuyi::DEFAULT_MENU : path
+    # Ask the user for a menu file to load
+    #
+    def get_menu
+      until @path
+        say 'Navigate to a menu file...', :type => :success
+        @path = ask "...or just press enter to load `#{Yuyi::DEFAULT_MENU}`", :readline => true, :color => 36 do |path|
+          path = path.empty? ? Yuyi::DEFAULT_MENU : path
 
-        if Yuyi::Menu.load_from_file path
-          say 'Downloading Sources... Please Wait', :type => :warn
-          say
+          if Yuyi::Menu.load_from_file path
+            say 'Downloading Sources... Please Wait', :type => :warn
+            say
 
-          path
-        else
-          say 'Invalid Path... Please check the location of your menu file', :type => :fail
-          say
+            path
+          else
+            say 'Invalid Path... Please check the location of your menu file', :type => :fail
+            say
 
-          nil
+            nil
+          end
+        end
+      end
+
+      Yuyi::Menu.new @path
+    end
+
+    # Ask to check for upgrades
+    #
+    def confirm_upgrade
+      ask 'Do you want to check for upgrades for already installed rolls? (Yn)', :type => :warn do |upgrade|
+        Yuyi::Menu.upgrade? upgrade == 'Y'
+      end
+    end
+
+    # If any rolls on the menu have options, confirm the options before continuing
+    #
+    def confirm_options
+      confirm = false
+      Yuyi::Menu.rolls.each do |name, roll|
+
+        unless roll.class.options.empty?
+          present_options roll
+          confirm = true
+        end
+      end
+
+      if confirm
+        ask 'Hit any key when you have your options set correctly in your menu file', :type => :warn do
+          Yuyi::Menu.load_from_file
         end
       end
     end
 
-    Yuyi::Menu.new @path
-  end
+    def authenticate
+      say 'Yuyi does not need your admin password, but some installations force a prompt.', :type => :warn
+      say 'You may be asked to enter your password several times. ', :type => :warn
 
-  # Ask to check for upgrades
-  #
-  def confirm_upgrade
-    ask 'Do you want to check for upgrades for already installed rolls? (Yn)', :type => :warn do |upgrade|
-      Yuyi::Menu.upgrade? upgrade == 'Y'
-    end
-  end
-
-  # If any rolls on the menu have options, confirm the options before continuing
-  #
-  def confirm_options
-    confirm = false
-    Yuyi::Menu.rolls.each do |name, roll|
-
-      unless roll.class.options.empty?
-        present_options roll
-        confirm = true
-      end
-    end
-
-    if confirm
-      ask 'Hit any key when you have your options set correctly in your menu file', :type => :warn do
-        Yuyi::Menu.load_from_file
-      end
-    end
-  end
-
-  def authenticate
-    say 'Yuyi does not need your admin password, but some installations force a prompt.', :type => :warn
-    say 'You may be asked to enter your password several times. ', :type => :warn
-
-    # keep the sudo timestamp fresh
-    Thread::new do
-      loop do
-        sleep 1.minute
-        `sudo -v`
-      end
-    end
-
-    say
-  end
-
-  # Show formatted options
-  #
-  def present_options roll, examples = true
-    indent = 2
-    longest_option = roll.options.keys.map(&:to_s).max_by(&:length).length + indent
-
-    say "Available options for #{roll.title}...", :color => 32
-
-    roll.option_defs.each do |k, v|
-      option_color = v[:required] ? 31 : 36
-
-      say "#{k.to_s.rjust(longest_option)}: ", :color => option_color, :newline => false
-      say v[:description]
-      say (' ' * (longest_option + indent)), :newline => false
-      if v[:default]
-        say 'default: ', :color => 36, :newline => false
-        say v[:default]
-      end
-    end
-
-    if examples
-      examples_hash = {}
-      example_indent = longest_option + indent
-      options = roll.options.dup
-
-      # merge examples from roll source in
-      options.each do |option, value|
-        if example = roll.option_defs[option][:example]
-          options[option] = example
+      # keep the sudo timestamp fresh
+      Thread::new do
+        loop do
+          sleep 1.minute
+          `sudo -v`
         end
       end
-
-      examples_hash[roll.file_name.to_s] = options
-
 
       say
-      say 'Example', :color => 33, :indent => example_indent, :newline => false
-      say examples_hash.deep_stringify_keys!.to_yaml.sub('---', '').gsub(/\n(\s*)/, "\n\\1#{' ' * example_indent}")
     end
-  end
 
-  # Output text with a certain color (or style)
-  # Reference for color codes
-  # https://github.com/flori/term-ansicolor/blob/master/lib/term/ansicolor.rb
-  #
-  def colorize text, color_code
-    return text unless color_code
-    "\e[#{color_code}m#{text}\e[0m"
-  end
-
-  # METHODS FOR FLAGS
-  #
-  def help
-    longest_option = CLI_OPTIONS.keys.map(&:to_s).max.length
-
-    say
-    CLI_OPTIONS.each do |option, description|
-      string = ''
-      string << "-#{option.to_s.chars.first}"
-      string << ', '
-      string << "--#{option.to_s.ljust(longest_option)}"
-      string << '   '
-      string << description
-      say string
-    end
-    say
-  end
-
-  # List all available rolls
-  #
-  def list
-    get_menu
-    Yuyi::Menu.set_sources
-
-    # Collect all rolls from all sources
+    # Show formatted options
     #
-    rolls = []
-    Yuyi::Menu.sources.each do |source|
-      rolls |= source.available_rolls.keys
+    def present_options roll, examples = true
+      indent = 2
+      longest_option = roll.options.keys.map(&:to_s).max_by(&:length).length + indent
+
+      say "Available options for #{roll.title}...", :color => 32
+
+      roll.option_defs.each do |k, v|
+        option_color = v[:required] ? 31 : 36
+
+        say "#{k.to_s.rjust(longest_option)}: ", :color => option_color, :newline => false
+        say v[:description]
+        say (' ' * (longest_option + indent)), :newline => false
+        if v[:default]
+          say 'default: ', :color => 36, :newline => false
+          say v[:default]
+        end
+      end
+
+      if examples
+        examples_hash = {}
+        example_indent = longest_option + indent
+        options = roll.options.dup
+
+        # merge examples from roll source in
+        options.each do |option, value|
+          if example = roll.option_defs[option][:example]
+            options[option] = example
+          end
+        end
+
+        examples_hash[roll.file_name.to_s] = options
+
+
+        say
+        say 'Example', :color => 33, :indent => example_indent, :newline => false
+        say examples_hash.deep_stringify_keys!.to_yaml.sub('---', '').gsub(/\n(\s*)/, "\n\\1#{' ' * example_indent}")
+      end
     end
 
-    # alphabatize rolls
-    rolls = rolls.map(&:to_s).sort.map(&:to_sym)
-
-    say 'Available Rolls', :type => :success
-    say '---------------', :type => :success
-    rolls.each do |roll|
-      say roll.to_s
+    # Output text with a certain color (or style)
+    # Reference for color codes
+    # https://github.com/flori/term-ansicolor/blob/master/lib/term/ansicolor.rb
+    #
+    def colorize text, color_code
+      return text unless color_code
+      "\e[#{color_code}m#{text}\e[0m"
     end
-    say
-  end
 
-  # Return current version
-  #
-  def version
-    say "#{Yuyi::NAME} #{Yuyi::VERSION}"
-  end
+    # METHODS FOR FLAGS
+    #
+    def help
+      longest_option = CLI_OPTIONS.keys.map(&:to_s).max.length
 
-  # Return current version
-  #
-  def verbose
-    @verbose = true
-    start
-  end
+      say
+      CLI_OPTIONS.each do |option, description|
+        string = ''
+        string << "-#{option.to_s.chars.first}"
+        string << ', '
+        string << "--#{option.to_s.ljust(longest_option)}"
+        string << '   '
+        string << description
+        say string
+      end
+      say
+    end
+
+    # List all available rolls
+    #
+    def list
+      get_menu
+      Yuyi::Menu.set_sources
+
+      # Collect all rolls from all sources
+      #
+      rolls = []
+      Yuyi::Menu.sources.each do |source|
+        rolls |= source.available_rolls.keys
+      end
+
+      # alphabatize rolls
+      rolls = rolls.map(&:to_s).sort.map(&:to_sym)
+
+      say 'Available Rolls', :type => :success
+      say '---------------', :type => :success
+      rolls.each do |roll|
+        say roll.to_s
+      end
+      say
+    end
+
+    # Return current version
+    #
+    def version
+      say "#{Yuyi::NAME} #{Yuyi::VERSION}"
+    end
+
+    # Return current version
+    #
+    def verbose
+      @verbose = true
+      start
+    end
 end

@@ -212,6 +212,10 @@ private
     end
 
     def installed?
+      if Yuyi.verbose?
+        say "INSTALLED?: #{self.title}", :color => 36
+      end
+
       begin
         !!instance_eval(&self.class.installed?)
       rescue

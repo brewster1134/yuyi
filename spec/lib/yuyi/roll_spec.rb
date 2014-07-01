@@ -236,8 +236,8 @@ describe 'Yuyi::RollModel' do
 
     class Yuyi::FooRollModel < Yuyi::Roll
       def self.inherited klass; add_roll klass, caller; end
-      def self.foo_name  name
-        @@name = name
+      def self.foo_name name
+        install { name }
         installed? { false }
       end
 
@@ -245,10 +245,6 @@ describe 'Yuyi::RollModel' do
 
     class Yuyi::FooModelRoll < Yuyi::FooRollModel
       foo_name 'Foo Name'
-      install do
-        @@name
-      end
-
       installed? { true }
     end
   end

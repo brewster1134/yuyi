@@ -107,6 +107,7 @@ end
 ```
 
 ### TODO
+* vagrant plugins
 * Enforce required options
 * New roll generator (use new!)
 * DOCS!

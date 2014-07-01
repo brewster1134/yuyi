@@ -174,6 +174,7 @@ private
 
     def pre_install
       return unless self.class.pre_install
+      say title, :type => :success
       instance_eval(&self.class.pre_install)
     end
 
@@ -188,6 +189,7 @@ private
 
     def post_install
       return unless self.class.post_install
+      say title, :type => :success
       instance_eval(&self.class.post_install)
     end
 

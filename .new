@@ -16,4 +16,4 @@ tasks:
       - spec/**/*.rb
 project_name: Yuyi
 type: ruby
-version: 1.0.7
+version: 1.0.8

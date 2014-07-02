@@ -130,7 +130,9 @@ describe Yuyi::Roll do
     end
 
     it 'should return the pre_install results' do
+      allow(Yuyi::TestRoll).to receive(:installed?).and_return false
       expect(@test_roll.send(:pre_install)).to eq :pre_install
+      allow(Yuyi::TestRoll).to receive(:installed?).and_call_original
     end
 
     it 'should return the install results' do
@@ -138,7 +140,9 @@ describe Yuyi::Roll do
     end
 
     it 'should return the post_install results' do
+      allow(Yuyi::TestRoll).to receive(:installed?).and_return false
       expect(@test_roll.send(:post_install)).to eq :post_install
+      allow(Yuyi::TestRoll).to receive(:installed?).and_call_original
     end
 
     it 'should return the uninstall results' do

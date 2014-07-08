@@ -32,7 +32,7 @@ describe Hash do
       @hash.deep_stringify_keys!
     end
 
-    it 'should recursively symbolize keys' do
+    it 'should recursively stringify keys' do
       expect(@hash).to eq({
         'foo' => 'bar',
         'nested_hash' => { 'nested_key' => 'nested_value'},

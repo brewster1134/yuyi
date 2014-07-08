@@ -1,2 +1,2 @@
-class FooRoll < Yuyi::Roll
+class BarRoll < Yuyi::Roll
 end

@@ -19,7 +19,7 @@ describe Yuyi::Source do
     end
 
     it 'should put roll files in the tmp dir' do
-      paths = @source.var(:available_rolls).values
+      paths = @source.var(:rolls).values
 
       expect(paths.size).to eq 2
 
@@ -29,7 +29,11 @@ describe Yuyi::Source do
     end
 
     it 'should set the available rolls' do
-      expect(@source.var(:available_rolls).keys).to include :foo_roll
+      expect(@source.var(:rolls).keys).to include :foo_roll
+    end
+
+    it 'should set the available roll models' do
+      expect(@source.var(:roll_models).keys).to include :foo_roll_model
     end
   end
 

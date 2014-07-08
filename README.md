@@ -1,6 +1,7 @@
 ![Travis CI](https://travis-ci.org/brewster1134/Yuyi.svg?branch=master)
+
 # Yuyi
-Opinionated automation for installing/uninstalling/upgrading your machine environment
+Custom automation for installing/uninstalling/upgrading your local machine environment
 
 ###### Support
 * Mac OS X
@@ -12,7 +13,14 @@ Nothing! Well thats not entirely true... the dependencies are already available 
 
 #### Quick Usage
 * Create a `yuyi_menu` file in your home folder _(see below for examples)_
-* Run `ruby -e "$(curl -fsSL https://raw.github.com/brewster1134/Yuyi/master/bin/install)"` in Terminal
+
+If you are running yuyi on a brand new machine, you will need to run sudo to install Yuyi to the system installed ruby
+
+* `sudo gem install yuyi`
+
+Other you can just install it normally...
+
+* `gem install yuyi`
 
 #### Example Menu
 
@@ -30,17 +38,27 @@ Make sure to include a colon (:) at the end of each roll name.
 
 If a roll accepts arguments, indent the key/value pairs below the roll name.  You will be prompted with roll options when Yuyi runs, and the opportunity to change them before anything is installed.
 
-### Development
+**Then just run `yuyi`**
 
-##### Dependencies
-* ruby
-* bundler
+### Development
+Use yuyi to install development dependencies
+
+`yuyi https://raw.githubusercontent.com/brewster1134/Yuyi/master/yuyi_menu`
+`bundle install`
 
 ##### Running Tests
-Run tests using rspec through guard
-
 ```sh
-bundle exec guard
+// run guard to watch the source files and automatically run tests when you make changes
+bundle exec rake yuyi
+
+// run rspec tests on the yuyi library
+bundle exec rake yuyi:test
+
+// run rspec tests on the rolls specified in a given menu
+bundle exec rake yuyi:test:rolls
+
+// run rspec tests on the library and the rolld
+bundle exec rake yuyi:test:all
 ```
 
 ##### Writing Rolls
@@ -67,7 +85,19 @@ bundle exec guard
 
 ```ruby
 class MyRoll < Yuyi::Roll
+  options({
+    :version => {
+      :description => 'The specific version you would like to install',
+      :example => '1.0',  # optional
+      :default => '2.0',  # optional
+      :required => true   # optional - shows option in red
+    }
+  })
+
+  dependencies :homebrew, :foo
+
   install do
+    dependencies :hombrew_cask if options[:version] == '2.0' # add dependencies conditionally
     run 'brew install my_roll', :verbose => true
 
     write_to_file '~/.bash_profile', "# #{title}"
@@ -88,31 +118,18 @@ class MyRoll < Yuyi::Roll
     command? 'brew'
 
     # or check the output of a command
-    # using `run` will return true or false, so use
-    `brew list` =~ /myroll/
+    run('brew list') =~ /myroll/
   end
-
-  dependencies :homebrew, :foo
-  dependencies :hombrew_cask if options[:version] == '2.0' # add dependencies conditionally
-
-  options(
-    :version => {
-      :description => 'The specific version you would like to install',
-      :example => '1.0',  # optional
-      :default => '2.0',  # optional
-      :required => true   # optional - shows option in red
-    }
-  )
 end
 ```
 
 ### TODO
+* progressbar
 * vagrant plugins
 * Enforce required options
 * New roll generator (use new!)
-* DOCS!
 * show roll options on -l
-* home brew/home brew cask roll to inherit
 * installation summary
+* DOCS!
 
 [.](http://www.comedycentral.com/video-clips/3myds9/upright-citizens-brigade-sushi-chef)

@@ -1,0 +1,8 @@
+sources:
+  yuyi: https://github.com/brewster1134/Yuyi-Rolls/archive/master.zip
+rolls:
+  bundler:
+  ruby:
+    versions:
+      - 2.1.2
+  ruby_gems:

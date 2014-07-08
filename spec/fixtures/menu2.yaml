@@ -1,6 +1,9 @@
+# menu should be the exact same as menu.yaml, except with the options changes for foo_roll
+# this is to test that when a menu is edited and options are changed, yuyi picks up the changes.
 sources:
-- local: spec/fixtures/roll_dir
-- yuyi: spec/fixtures/roll_zip.zip
+  dir: spec/fixtures/roll_dir
+  zip: spec/fixtures/roll_zip.zip
 rolls:
   foo_roll:
     bar: foo
+  bar_roll:

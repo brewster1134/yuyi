@@ -1,3 +1,5 @@
+require 'ostruct'
+
 # See http://rubydoc.info/gems/rspec-core/RSpec/Core/Configuration
 $: << File.expand_path('../../lib', __FILE__)
 $: << File.expand_path('../../rolls', __FILE__)

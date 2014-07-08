@@ -2,7 +2,7 @@
 
 class Yuyi::Roll
 
-  # DSL API Methods
+  # CLASS DSL API Methods
   #
   def self.title title = nil
     title ? @title = title : @title
@@ -13,108 +13,85 @@ class Yuyi::Roll
   end
 
   def self.pre_install &block
-    if block
-      @pre_install = block
-    else
-      @pre_install
-    end
+    block_given? ? @pre_install = block : @pre_install
   end
 
   def self.install &block
-    if block
-      @install = block
-    else
-      @install
-    end
+    block_given? ? @install = block : @install
   end
 
   def self.post_install &block
-    if block
-      @post_install = block
-    else
-      @post_install
-    end
+    block_given? ? @post_install = block : @post_install
   end
 
   def self.uninstall &block
-    if block
-      @uninstall = block
-    else
-      @uninstall
-    end
+    block_given? ? @uninstall = block : @uninstall
   end
 
   def self.upgrade &block
-    if block
-      @upgrade = block
-    else
-      @upgrade
-    end
+    block_given? ? @upgrade = block : @upgrade
   end
 
   def self.installed? &block
-    if block
-      @installed = block
-    else
-      @installed
-    end
+    block_given? ? @installed = block : @installed
   end
 
   def self.dependencies *dependencies
-    @dependencies ||= []
-
-    unless dependencies.empty?
-      @dependencies |= dependencies
-      require_dependencies
+    dependencies.each do |d|
+      Yuyi::Menu.find_roll d
     end
 
-    @dependencies
+    @dependencies ||= []
+    @dependencies |= dependencies
   end
 
   # set option definitions
-  def self.options arg = {}
-    @option_defs ||= arg
+  def self.options option_defs = {}
+    @option_defs = option_defs
   end
 
-  # DSL Helper methods
-  #
-  def title; self.class.title; end
-  def file_name; self.class.file_name; end
 
-  # return option definitions
+  # INSTANCE DSL METHODS
+  #
+  def method_missing method, *args, &block
+    begin
+      self.class.send method, *args, &block
+    rescue
+      Yuyi.send method, *args, &block
+    rescue
+      super
+    end
+  end
+
+  def on_the_menu? roll
+    Yuyi::Menu.on_the_menu? roll
+  end
+
+  # return definitions instaed of user options
+  #
   def option_defs
     self.class.options
   end
 
-  def write_to_file file, *text
-    Yuyi.write_to_file file, *text
-  end
-
-  def delete_from_file file, *text
-    Yuyi.delete_from_file file, *text
-  end
-
+  # return user option values
+  #
   def options
     option_defaults = {}
-    option_defs.each do |roll, option_settings|
-      option_defaults[roll] = option_settings[:default]
+    option_defs.each do |option_name, option_settings|
+      option_defaults[option_name] = option_settings[:default]
     end
 
-    option_defaults.merge Yuyi::Menu.options(self)
-  end
-
-  def dependencies
-    self.class.dependencies
+    option_defaults.merge Yuyi::Menu.options(self.class.file_name)
   end
 
   # Run the roll
   #
-  def install
+  def order
     if installed?
       if options[:uninstall]
         Yuyi.say "🍣\s Uninstalling #{title}...", :color => 33
         uninstall
-      elsif upgrade?
+      elsif Yuyi.upgrade
         Yuyi.say "🍣\s Upgrading #{title}", :color => 36
         upgrade
       end
@@ -123,115 +100,93 @@ class Yuyi::Roll
       install
     end
   end
-  alias_method :order, :install
-  alias_method :entree, :install
+  alias_method :entree, :order
 
-  def pre_install; pre_install; end
+  # Methods to execute block
+  #
+  def pre_install
+    return if !self.class.pre_install || installed?
+    say title, :type => :success
+    instance_eval(&self.class.pre_install)
+  end
   alias_method :appetizers, :pre_install
 
-  def post_install; post_install; end
+  def install
+    begin
+      instance_eval(&self.class.install).inspect
+    rescue
+      say "The #{self.title} roll does not have `install` defined", :type => :fail
+      exit
+    end
+  end
+
+  def post_install
+    return if !self.class.post_install || installed?
+    say title, :type => :success
+    instance_eval(&self.class.post_install)
+  end
   alias_method :dessert, :post_install
 
-private
-
-    def upgrade?
-      Yuyi::Menu.upgrade?
+  def uninstall
+     begin
+      instance_eval(&self.class.uninstall)
+    rescue
+      say "The #{self.title} roll does not have `uninstall` defined", :type => :fail
+      exit
     end
+  end
+
+  def upgrade
+    begin
+      instance_eval(&self.class.upgrade)
+    rescue
+      say "The #{self.title} roll does not have `upgrade` defined", :type => :fail
+      exit
+    end
+  end
+
+  def installed?
+    if Yuyi.verbose
+      say "INSTALLED?: #{self.title}", :color => 36
+    end
+
+    begin
+      !!instance_eval(&self.class.installed?)
+    rescue
+      say "The #{self.title} roll does not have `installed?` defined", :type => :fail
+      exit
+    end
+  end
+
+private
 
     # Add to global collection of rolls
     #
     def self.inherited klass
-      return if klass.to_s.include? 'RollModel'
-
       add_roll klass, caller
     end
 
+    # method that actually passes the new roll to the menu
+    #
     def self.add_roll klass, caller
       # convert class name to a title string
       klass.title class_to_title klass
 
       # convert caller to a file name symbol
-      klass.file_name caller_to_file_name caller
+      klass.file_name caller_to_file_name(caller)
 
       Yuyi::Menu.add_roll klass.file_name, klass
     end
 
+    # Convert long class name to a readable title
+    #
     def self.class_to_title klass
       klass.to_s.match(/[^:]+$/)[0].gsub(/(?=[A-Z])/, ' ').strip
     end
 
+    # Convert long file name to a roll name symbol
+    #
     def self.caller_to_file_name caller
       caller.first[/[a-z_]+?(?=\.rb)/].to_sym
-    end
-
-    def self.require_dependencies
-      @dependencies.each do |roll|
-        unless Yuyi::Menu.on_the_menu? roll
-          Yuyi::Menu.find_roll roll
-        end
-      end
-    end
-
-    def pre_install
-      return if self.class.installed? || !self.class.pre_install
-      say title, :type => :success
-      instance_eval(&self.class.pre_install)
-    end
-
-    def install
-      begin
-        instance_eval(&self.class.install)
-      rescue
-        say "The #{self.title} roll does not have `install` defined", :type => :fail
-        exit
-      end
-    end
-
-    def post_install
-      return if self.class.installed? || !self.class.post_install
-      say title, :type => :success
-      instance_eval(&self.class.post_install)
-    end
-
-    def uninstall
-       begin
-        instance_eval(&self.class.uninstall)
-      rescue
-        say "The #{self.title} roll does not have `uninstall` defined", :type => :fail
-        exit
-      end
-    end
-
-    def upgrade
-      begin
-        instance_eval(&self.class.upgrade)
-      rescue
-        say "The #{self.title} roll does not have `upgrade` defined", :type => :fail
-        exit
-      end
-    end
-
-    def installed?
-      if Yuyi.verbose?
-        say "INSTALLED?: #{self.title}", :color => 36
-      end
-
-      begin
-        !!instance_eval(&self.class.installed?)
-      rescue
-        say "The #{self.title} roll does not have `installed?` defined", :type => :fail
-        exit
-      end
-    end
-
-    # Helpers for Yuyi Cli methods
-    def say *args; Yuyi.say *args; end
-    def ask *args; Yuyi.ask *args; end
-    def run *args; Yuyi.run *args; end
-    def command? *args; Yuyi.command? *args; end
-    def osx_version; Yuyi.osx_version; end
-
-    def on_the_menu? roll
-      Yuyi::Menu.on_the_menu? roll
     end
 end

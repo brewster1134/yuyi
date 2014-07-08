@@ -1,9 +1,14 @@
 source 'https://rubygems.org'
-gem 'rspec'
+gem 'thor'
 
 group :development do
-  gem 'new'
   gem 'guard'
   gem 'guard-rspec', :require => false
+  gem 'new'
+  gem 'rake'
   gem 'terminal-notifier-guard'
+end
+
+group :test do
+  gem 'rspec'
 end

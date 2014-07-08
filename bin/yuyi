@@ -3,4 +3,12 @@ $: << File.dirname(__FILE__) + '/../lib'
 
 require 'yuyi'
 
-Yuyi.init ARGV
+# skip thor if no arguments are passed, or if using ruby 1.8.x
+if ARGV.empty? || RUBY_VERSION.match(/^1.8/)
+  Yuyi.start
+
+# handle arguments with thor
+else
+  require 'yuyi/cli'
+  Yuyi::Cli.start ARGV
+end

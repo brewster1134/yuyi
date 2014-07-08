@@ -5,7 +5,7 @@ require 'tmpdir'
 class Yuyi::Source
   ROLL_FILE_GLOB = '**/*.rb'
 
-  def available_rolls; @available_rolls end
+  def rolls; @rolls end
   def roll_models; @roll_models end
 
 private
@@ -16,7 +16,7 @@ private
     end
 
     def initialize name, path
-      @available_rolls = {}
+      @rolls = {}
       @roll_models = {}
       @name = name
       @path = path
@@ -30,6 +30,7 @@ private
       dir = FileUtils.mkdir_p(File.join(@@root_tmp_dir, @name.to_s))
 
       # RUBY_VERSION
+      # DEPRECATION
       # mkdir_p <= 1.8 returns a string
       # mkdir_p >= 1.9 returns an array
       #
@@ -105,7 +106,7 @@ private
         if r.include?('roll_model.rb')
           @roll_models[name] = require_path
         else
-          @available_rolls[name] = require_path
+          @rolls[name] = require_path
         end
       end
     end

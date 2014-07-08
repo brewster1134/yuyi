@@ -19,6 +19,10 @@ class Hash
   # to +to_sym+. This includes the keys from the root hash and from all
   # nested hashes.
   #
+  # DEPRECATION
+  # required for: ruby 1.8.7
+  # can be replaced with activesupport ~4.0
+  #
   def deep_symbolize_keys!
     deep_transform_keys!{ |key| key.to_sym rescue key }
   end

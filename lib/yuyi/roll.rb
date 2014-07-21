@@ -113,7 +113,7 @@ class Yuyi::Roll
 
   def install
     begin
-      instance_eval(&self.class.install).inspect
+      instance_eval(&self.class.install)
     rescue
       say "The #{self.title} roll does not have `install` defined", :type => :fail
       exit

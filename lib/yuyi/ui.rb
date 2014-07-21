@@ -40,13 +40,14 @@ module Yuyi::Ui
 
   def authenticate
     say 'Yuyi does not need your admin password, but some installations do.', :type => :warn
+    say 'Yuyi will prompt you for a password and attempt to keep your admin timestamp alive.', :type => :warn
     say 'You may be asked to enter your password several times.', :type => :warn
-    say
 
     # keep the sudo timestamp fresh just in case
-    Thread::new do
+    `sudo -v`
+    Thread.new do
       loop do
-        sleep 1.minute
+        sleep 60
         `sudo -v`
       end
     end

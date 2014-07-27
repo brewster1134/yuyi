@@ -1,4 +1,6 @@
 module Yuyi::Ui
+  @@required = {}
+
   def header
     line_length = 50
     say
@@ -21,8 +23,7 @@ module Yuyi::Ui
   #
   def confirm_options
     confirm = false
-    Yuyi::Menu.rolls.each do |name, roll|
-
+    Yuyi::Menu.rolls.values.each do |roll|
       unless roll.class.options.empty?
         present_options roll
         confirm = true
@@ -30,10 +31,35 @@ module Yuyi::Ui
     end
 
     if confirm
-      say 'Your menu is being loaded from: ', :type => :warn, :newline => false
-      say Yuyi::Menu.menu_path
-      ask 'Make any changes you need to it, save it, and then press enter to continue.', :type => :warn do
-        Yuyi::Menu.load_from_file
+      required_options_satisfied = false
+
+      until required_options_satisfied
+        say 'Your menu is being loaded from: ', :type => :warn, :newline => false
+        say Yuyi::Menu.menu_path
+        ask 'Make any neccessary changes to it, then press enter to continue.', :type => :warn do
+          Yuyi::Menu.load_from_file
+        end
+
+        # check that required options are satisfied
+        catch :required_options_satisfied do
+          @@required.each do |roll, required_options|
+            required_options.each do |required_option|
+              if Yuyi::Menu.options(roll)[required_option]
+                next
+              else
+                say 'Required option ', :type => :fail, :newline => false
+                say required_option, :newline => false
+                say ' for ', :type => :fail, :newline => false
+                say roll, :newline => false
+                say ' is not set', :type => :fail
+                say
+                throw :required_options_satisfied
+              end
+            end
+          end
+
+          required_options_satisfied = true
+        end
       end
     end
   end
@@ -63,7 +89,15 @@ module Yuyi::Ui
     say "#{roll.title} options", :color => :green
 
     roll.option_defs.each do |k, v|
-      option_color = v[:required] ? :red : :default
+      if v[:required]
+        # add to required list
+        @@required[roll.file_name] ||= []
+        @@required[roll.file_name] << k
+
+        option_color = :red
+      else
+        option_color = :default
+      end
 
       # show option and description
       say "#{k.to_s.rjust(longest_option)}: ", :color => option_color, :newline => false

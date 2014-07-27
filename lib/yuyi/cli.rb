@@ -34,7 +34,6 @@ class Yuyi::Cli < Thor
   option :upgrade, :default => false, :aliases => '-u', :type => :boolean, :desc => 'Check for upgrades for rolls on the menu that are already installed'
   option :menu, :aliases => '-m', :desc => 'Path to your menu file'
   def start
-    puts options.inspect
     # enable verbose mode if flag is passed
     Yuyi.verbose = options[:verbose]
     Yuyi.upgrade = options[:upgrade]

@@ -8,7 +8,6 @@ require 'yuyi/source'
 require 'yuyi/ui'
 
 class Yuyi
-  require 'yaml'
   extend Yuyi::Dsl
   extend Yuyi::Ui
 

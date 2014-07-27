@@ -1,5 +1,6 @@
 require 'rubygems' # DEPRECATION: required for ruby 1.8.7
 require 'tsort'
+require 'yaml'
 
 class Array
   def to_yaml_style

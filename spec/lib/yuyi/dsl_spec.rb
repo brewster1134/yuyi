@@ -14,16 +14,6 @@ describe Yuyi::Dsl do
       allow(STDOUT).to receive(:puts).and_call_original
     end
 
-    it 'should output the correct type' do
-      expect(STDOUT).to receive(:puts).with("\e[31mfoo type\e[0m")
-      DslTest.say 'foo type', :type => :fail
-    end
-
-    it 'should output the correct color' do
-      expect(STDOUT).to receive(:puts).with("\e[123mfoo color\e[0m")
-      DslTest.say 'foo color', :color => 123
-    end
-
     it 'should output the correct justification & padding' do
       expect(STDOUT).to receive(:puts).with(' foo justify padding  ')
       DslTest.say 'foo justify padding', :justify => :center, :padding => 22

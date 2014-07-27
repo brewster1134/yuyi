@@ -1,6 +1,9 @@
 require 'readline'
+require 'ruby-progressbar'
 
 class Yuyi::Menu
+  attr_accessor :progressbar
+
   # Stores a single menu instance on the class
   # If a new menu is initialized, it will become the only menu accessible through Yuyi::Menu.menu
   #
@@ -151,7 +154,7 @@ private
     def get_menu_path
       until @yaml
         Yuyi.say 'Navigate to a menu file...', :type => :success
-        Yuyi.ask "...or just press enter to load `#{Yuyi::DEFAULT_MENU}`", :readline => true, :color => 36 do |user_path|
+        Yuyi.ask "...or just press enter to load `#{Yuyi::DEFAULT_MENU}`", :readline => true do |user_path|
           menu_path = user_path.empty? ? Yuyi::DEFAULT_MENU : user_path
           load_from_file menu_path
         end
@@ -209,47 +212,49 @@ private
     def order
       header_length = 80
       all_rolls = sorted_rolls
-
+      self.progressbar = ProgressBar.create(:progress_mark => '='.colorize(:green), :length => header_length, :total => all_rolls.length)
 
       # pre installs
       #
-      Yuyi.say '=' * header_length, :color => 35
-      Yuyi.say 'APPETIZERS', :color => 35, :justify => :center, :padding => header_length
-      Yuyi.say 'Pre Install', :justify => :center, :padding => header_length
-      Yuyi.say
+      # Yuyi.say '=' * header_length, :color => :green
+      Yuyi.say 'APPETIZERS', :justify => :center, :padding => header_length
 
+      self.progressbar.reset
       all_rolls.each do |file_name|
         @rolls[file_name].appetizers
+        self.progressbar.increment
       end
+      Yuyi.say
 
 
       # main installs
       #
-      Yuyi.say '=' * header_length, :color => 36
-      Yuyi.say 'ENTREES', :color => 36, :justify => :center, :padding => header_length
-      Yuyi.say 'Main Install', :justify => :center, :padding => header_length
-      Yuyi.say
+      # Yuyi.say '=' * header_length, :color => :green
+      Yuyi.say 'ENTREES', :justify => :center, :padding => header_length
 
+      self.progressbar.reset
       all_rolls.each do |file_name|
         @rolls[file_name].entree
+        self.progressbar.increment
       end
+      Yuyi.say
 
 
       # post installs
       #
-      Yuyi.say '=' * header_length, :color => 35
-      Yuyi.say 'DESSERT', :color => 35, :justify => :center, :padding => header_length
-      Yuyi.say 'Post Install', :justify => :center, :padding => header_length
-      Yuyi.say
+      # Yuyi.say '=' * header_length, :color => :green
+      Yuyi.say 'DESSERT', :justify => :center, :padding => header_length
 
+      self.progressbar.reset
       all_rolls.each do |file_name|
         @rolls[file_name].dessert
+        self.progressbar.increment
       end
+      Yuyi.say
 
 
-      Yuyi.say '=' * header_length, :color => 36
-      Yuyi.say 'YUYI COMPLETED', :color => 36, :justify => :center, :padding => header_length
-      Yuyi.say '=' * header_length, :color => 36
+      Yuyi.say 'YUYI COMPLETED', :color => :light_blue, :justify => :center, :padding => header_length
+      Yuyi.say '=' * header_length, :color => :light_blue
       Yuyi.say
     end
 

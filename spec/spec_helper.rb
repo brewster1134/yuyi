@@ -17,10 +17,13 @@ RSpec.configure do |config|
     c.syntax = :expect
   end
 
-  config.order = 'random'
+  config.order = :random
 
   config.before do
     allow(Yuyi).to receive(:say)
+    allow(ProgressBar).to receive(:create)
+    allow_any_instance_of(Yuyi::Menu).to receive_message_chain('progressbar.reset')
+    allow_any_instance_of(Yuyi::Menu).to receive_message_chain('progressbar.increment')
   end
 end
 

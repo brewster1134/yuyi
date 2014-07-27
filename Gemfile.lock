@@ -56,6 +56,7 @@ GEM
     rspec-mocks (3.0.2)
       rspec-support (~> 3.0.0)
     rspec-support (3.0.2)
+    ruby-progressbar (1.5.1)
     semantic (1.3.0)
     slop (3.5.0)
     terminal-notifier-guard (1.5.3)
@@ -66,10 +67,12 @@ PLATFORMS
   ruby
 
 DEPENDENCIES
+  colorize
   guard
   guard-rspec
   new
   rake
   rspec
+  ruby-progressbar
   terminal-notifier-guard
   thor

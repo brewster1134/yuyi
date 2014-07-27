@@ -47,7 +47,8 @@ class Yuyi::Roll
 
   # set option definitions
   def self.options option_defs = {}
-    @option_defs = option_defs
+    @option_defs ||= {}
+    @option_defs.merge! option_defs
   end
 
 
@@ -89,14 +90,14 @@ class Yuyi::Roll
   def order
     if installed?
       if options[:uninstall]
-        Yuyi.say "🍣\s Uninstalling #{title}...", :color => 33
+        say "🍣\s Uninstalling #{title}...", :color => :red, :progressbar => true, :overwrite => true
         uninstall
       elsif Yuyi.upgrade
-        Yuyi.say "🍣\s Upgrading #{title}", :color => 36
+        say "🍣\s Upgrading #{title}", :color => :yellow, :progressbar => true, :overwrite => true
         upgrade
       end
     else
-      Yuyi.say "🍣\s Installing #{title}...", :color => 32
+      say "🍣\s Installing #{title}...", :color => :green, :progressbar => true, :overwrite => true
       install
     end
   end
@@ -147,7 +148,7 @@ class Yuyi::Roll
 
   def installed?
     if Yuyi.verbose
-      say "INSTALLED?: #{self.title}", :color => 36
+      say "INSTALLED?: #{self.title}", :color => :yellow
     end
 
     begin

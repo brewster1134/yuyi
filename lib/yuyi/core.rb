@@ -1,3 +1,4 @@
+require 'rubygems' # DEPRECATION: required for ruby 1.8.7
 require 'tsort'
 
 class Array

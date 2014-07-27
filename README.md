@@ -124,11 +124,10 @@ end
 ```
 
 ### TODO
-* progressbar
 * vagrant plugins
 * Enforce required options
 * New roll generator (use new!)
-* show roll options on -l
+* show roll options on list
 * installation summary
 * DOCS!
 

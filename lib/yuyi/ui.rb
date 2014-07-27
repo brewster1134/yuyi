@@ -2,18 +2,18 @@ module Yuyi::Ui
   def header
     line_length = 50
     say
-    say '-' * line_length, :color => 4
+    say '-' * line_length, :color => :light_blue
     say
-    say '____    ____  __    __  ____    ____  __  ', :color => 31, :justify => :center, :padding => line_length
-    say '\   \  /   / |  |  |  | \   \  /   / |  | ', :color => 32, :justify => :center, :padding => line_length
-    say ' \   \/   /  |  |  |  |  \   \/   /  |  | ', :color => 33, :justify => :center, :padding => line_length
-    say '  \_    _/   |  |  |  |   \_    _/   |  | ', :color => 34, :justify => :center, :padding => line_length
-    say '    |  |     |  `--\'  |     |  |     |  | ', :color => 35, :justify => :center, :padding => line_length
-    say '    |__|      \______/      |__|     |__| ', :color => 36, :justify => :center, :padding => line_length
+    say '____    ____  __    __  ____    ____  __  ',  :justify => :center, :padding => line_length, :color => :red
+    say '\   \  /   / |  |  |  | \   \  /   / |  | ',  :justify => :center, :padding => line_length, :color => :light_white
+    say ' \   \/   /  |  |  |  |  \   \/   /  |  | ',  :justify => :center, :padding => line_length, :color => :light_blue
+    say '  \_    _/   |  |  |  |   \_    _/   |  | ',  :justify => :center, :padding => line_length, :color => :red
+    say '    |  |     |  `--\'  |     |  |     |  | ', :justify => :center, :padding => line_length, :color => :light_white
+    say '    |__|      \______/      |__|     |__| ',  :justify => :center, :padding => line_length, :color => :light_blue
     say
     say "VERSION #{Yuyi::VERSION}", :justify => :center, :padding => line_length
     say
-    say '-' * line_length, :color => 4
+    say '-' * line_length, :color => :light_blue
     say
   end
 
@@ -42,6 +42,7 @@ module Yuyi::Ui
     say 'Yuyi does not need your admin password, but some installations do.', :type => :warn
     say 'Yuyi will prompt you for a password and attempt to keep your admin timestamp alive.', :type => :warn
     say 'You may be asked to enter your password several times.', :type => :warn
+    say
 
     # keep the sudo timestamp fresh just in case
     `sudo -v`
@@ -59,23 +60,24 @@ module Yuyi::Ui
     indent = 2
     longest_option = roll.options.keys.map(&:to_s).max_by(&:length).length + indent
 
-    say "Available options for #{roll.title}...", :color => 32
+    say "#{roll.title} options", :color => :green
 
     roll.option_defs.each do |k, v|
-      option_color = v[:required] ? 31 : 36
+      option_color = v[:required] ? :red : :default
 
+      # show option and description
       say "#{k.to_s.rjust(longest_option)}: ", :color => option_color, :newline => false
       say v[:description]
-      say (' ' * (longest_option + indent)), :newline => false
-      if v[:default]
-        say 'default: ', :color => 36, :newline => false
+
+      # show default
+      if v[:default] && (!v[:default].respond_to?(:empty?) || (v[:default].respond_to?(:empty?) && !v[:default].empty?))
+        say 'default: ', :indent => (longest_option + indent), :newline => false, :color => :yellow
         say v[:default]
       end
     end
 
     if examples
       examples_hash = {}
-      example_indent = longest_option + indent
       options = roll.options.dup
 
       # merge examples from roll source in
@@ -88,17 +90,8 @@ module Yuyi::Ui
       examples_hash[roll.file_name.to_s] = options
 
       say
-      say 'Example', :color => 33, :indent => example_indent, :newline => false
-      say examples_hash.deep_stringify_keys!.to_yaml.sub('---', '').gsub(/\n(\s*)/, "\n\\1#{' ' * example_indent}")
+      say 'Example', :color => :green, :indent => indent, :newline => false
+      say examples_hash.deep_stringify_keys!.to_yaml.sub('---', '').gsub(/\n(\s*)/, "\n\\1#{' ' * (indent + indent)}")
     end
-  end
-
-  # Output text with a certain color (or style)
-  # Reference for color codes
-  # https://github.com/flori/term-ansicolor/blob/master/lib/term/ansicolor.rb
-  #
-  def colorize text, color_code
-    return text unless color_code
-    "\e[#{color_code}m#{text}\e[0m"
   end
 end

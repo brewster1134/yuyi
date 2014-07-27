@@ -1,3 +1,4 @@
+require 'colorize'
 require 'open3'
 require 'readline'
 require 'yaml'
@@ -9,12 +10,14 @@ module Yuyi::Dsl
   attr_accessor :verbose, :upgrade, :menu_path
 
   # Replacement for `puts` that accepts various stylistic arguments
-  # type:     => [symbol]             Preset colors for [:fail, :success, :warn]
-  # color:    => [integer]            See docs for #colorize for color codes
-  # justify:  => [center|ljust|rjust] The type of justification to use
-  # padding:  => [integer]            The maximum string size to justify text in
-  # indent:   => [integer]            The maximum string size to justify text in
-  # newline:  => [boolean]            True if you want a newline after the output
+  # type:         => [symbol]             Preset colors for [:fail, :success, :warn]
+  # color:        => [integer]            See docs for #colorize for color codes
+  # justify:      => [center|ljust|rjust] The type of justification to use
+  # padding:      => [integer]            The maximum string size to justify text in
+  # indent:       => [integer]            The maximum string size to justify text in
+  # newline:      => [boolean]            True if you want a newline after the output
+  # progressbar:  => [boolean]            True if you are adding a title to the progresbar
+  # overwrite:    => [boolean]            True if you want to overwrite the previous line
   #
   def say text = '', args = {}
     # defaults
@@ -31,33 +34,43 @@ module Yuyi::Dsl
     # process last due to the addition of special color codes
     text = case args[:type]
     when :fail
-      Yuyi.colorize text, 31
+      text.colorize :red
     when :success
-      Yuyi.colorize text, 32
+      text.colorize :green
     when :warn
-      Yuyi.colorize text, 33
+      text.colorize :yellow
     else
-      Yuyi.colorize text, args[:color]
+      text
+    end
+
+    if args[:color]
+      text = text.colorize(args[:color])
     end
 
     if args[:indent]
       text = (' ' * args[:indent]) + text
     end
 
-    if args[:newline]
-      STDOUT.puts text
-    else
+    if args[:overwrite]
+      STDOUT.flush
+      text = text + "\r"
+    end
+
+    if args[:progressbar] && Yuyi.verbose != true && Yuyi::Menu.menu && Yuyi::Menu.menu.progressbar
+      Yuyi::Menu.menu.progressbar.log text
+    elsif !args[:newline] || args[:overwrite]
       STDOUT.print text
+    else
+      STDOUT.puts text
     end
   end
 
   # Accepts the same arguments as #say
   #
   def ask question, options = {}, &block
-    prompt = '>>> '
+    prompt = '>>> '.colorize(:green)
     options = {
       :readline => false,
-      :color => 1
     }.merge(options)
 
     say question, options
@@ -65,7 +78,7 @@ module Yuyi::Dsl
     output = if options[:readline]
       Readline.readline(prompt).chomp('/')
     else
-      say prompt, :color => 1, :newline => false
+      say prompt, :newline => false
       STDIN.gets
     end.rstrip
 

@@ -1,4 +1,6 @@
 source 'https://rubygems.org'
+gem 'colorize'
+gem 'ruby-progressbar'
 gem 'thor'
 
 group :development do

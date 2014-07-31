@@ -123,10 +123,4 @@ class MyRoll < Yuyi::Roll
 end
 ```
 
-### TODO
-* New roll generator (use new!)
-* show roll options on list
-* installation summary
-* DOCS!
-
 [.](http://www.comedycentral.com/video-clips/3myds9/upright-citizens-brigade-sushi-chef)

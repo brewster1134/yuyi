@@ -13,7 +13,7 @@ class Yuyi
 
   NAME = 'Yuyi'
   VERSION = YAML.load(File.read(File.dirname(__FILE__) + '/../.new'))['version']
-  DEFAULT_MENU = File.expand_path('~/yuyi_menu')
+  DEFAULT_MENU = File.expand_path('~/Yuyifile')
 
   def self.start
     header

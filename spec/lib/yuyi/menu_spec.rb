@@ -78,13 +78,13 @@ describe Yuyi::Menu do
       context 'when the path is remote' do
         before do
           @tmp_dir = Dir.mktmpdir
-          stub_const 'Yuyi::DEFAULT_MENU', File.join(@tmp_dir, 'yuyi_menu')
+          stub_const 'Yuyi::DEFAULT_MENU', File.join(@tmp_dir, 'Yuyifile')
           remote_file = 'file://' << File.join(File.dirname(__FILE__), '../../fixtures/menu.yaml')
           @menu.send :load_from_file, remote_file
         end
 
         after do
-          FileUtils.rm File.join(@tmp_dir, 'yuyi_menu_remote')
+          FileUtils.rm File.join(@tmp_dir, 'Yuyifile_remote')
         end
 
         it 'should set the yaml variable' do
@@ -96,7 +96,7 @@ describe Yuyi::Menu do
         end
 
         it 'should create a _remote local menu file' do
-          expect(File.exist?(File.join(@tmp_dir, 'yuyi_menu_remote'))).to be true
+          expect(File.exist?(File.join(@tmp_dir, 'Yuyifile_remote'))).to be true
         end
       end
     end

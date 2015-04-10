@@ -12,7 +12,7 @@ Nothing! Well thats not entirely true... the dependencies are already available 
 * Bash >= 3.2
 
 #### Quick Usage
-* Create a `yuyi_menu` file in your home folder _(see below for examples)_
+* Create a `Yuyifile` file in your home folder _(see below for examples)_
 
 If you are running yuyi on a brand new machine, you will need to run sudo to install Yuyi to the system installed ruby
 
@@ -43,7 +43,7 @@ If a roll accepts arguments, indent the key/value pairs below the roll name.  Yo
 ### Development
 Use yuyi to install development dependencies
 
-`yuyi https://raw.githubusercontent.com/brewster1134/Yuyi/master/yuyi_menu`
+`yuyi https://raw.githubusercontent.com/brewster1134/Yuyi/master/Yuyifile`
 `bundle install`
 
 ##### Running Tests

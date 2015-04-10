@@ -116,10 +116,4 @@ describe Yuyi::Dsl do
       expect(File.open('delete_from_file_array').read).to eq "foo\nbar\n"
     end
   end
-
-  describe '#osx_version' do
-    it 'should return a float' do
-      expect(DslTest.osx_version).to be_a Float
-    end
-  end
 end

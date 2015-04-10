@@ -77,14 +77,16 @@ describe Yuyi::Menu do
 
       context 'when the path is remote' do
         before do
+          @pwd = Dir.pwd
           @tmp_dir = Dir.mktmpdir
-          stub_const 'Yuyi::DEFAULT_MENU', File.join(@tmp_dir, 'Yuyifile')
+          FileUtils.chdir @tmp_dir
           remote_file = 'file://' << File.join(File.dirname(__FILE__), '../../fixtures/menu.yaml')
           @menu.send :load_from_file, remote_file
         end
 
         after do
           FileUtils.rm File.join(@tmp_dir, 'Yuyifile_remote')
+          FileUtils.chdir @pwd
         end
 
         it 'should set the yaml variable' do
@@ -104,9 +106,12 @@ describe Yuyi::Menu do
     describe '#get_menu_path' do
       before do
         tmp_dir = Dir.mktmpdir
+        allow(Yuyi::Menu).to receive(:find_menu_file).and_return File.join(tmp_dir, Yuyi::DEFAULT_FILE_NAME)
+
         FileUtils.cp File.join(File.dirname(__FILE__), '../../fixtures/menu.yaml'), tmp_dir
         stub_const 'Yuyi::DEFAULT_MENU', File.join(tmp_dir, 'menu.yaml')
         @menu.send :instance_variable_set, :'@yaml', nil
+
 
         allow(Readline).to receive(:readline).and_return('foo', 'bar', '')
         allow(@menu).to receive(:load_from_file).and_call_original

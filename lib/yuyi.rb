@@ -1,5 +1,6 @@
 class Yuyi; end
 
+require 'yuyi/cli'
 require 'yuyi/core'
 require 'yuyi/dsl'
 require 'yuyi/menu'
@@ -12,8 +13,8 @@ class Yuyi
   extend Yuyi::Ui
 
   NAME = 'Yuyi'
-  VERSION = YAML.load(File.read(File.dirname(__FILE__) + '/../.new'))['version']
-  DEFAULT_MENU = File.expand_path('~/Yuyifile')
+  VERSION = YAML.load(File.read(File.dirname(__FILE__) + '/../Newfile'))['version']
+  DEFAULT_FILE_NAME = 'Yuyifile'
 
   def self.start
     header

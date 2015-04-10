@@ -1,9 +1,14 @@
-require 'spec_helper'
-require 'yuyi/cli'
-
 describe Yuyi::Cli do
-  # Argument Methods
-  #
+  before do
+    @cli = Yuyi::Cli.new
+
+    # collect output from S.ay
+    @output = ''
+    allow(S).to receive :ay do |text|
+      @output << (text || '')
+    end
+  end
+
   describe '#list' do
     before do
       allow(Yuyi::Menu).to receive :new
@@ -12,21 +17,22 @@ describe Yuyi::Cli do
         OpenStruct.new({ :rolls => { :bar => {}}})
       ])
 
-      @output = ''
-      allow(Yuyi).to receive :say do |o, p|
-        @output << (o || '')
-      end
-
-      Yuyi::Cli.new.send :list
+      @cli.list
     end
 
     after do
       allow(Yuyi::Menu).to receive(:new).and_call_original
-      allow(Yuyi::Menu).to receive(:set_sources).and_call_original
+      allow(Yuyi::Menu).to receive(:sources).and_call_original
     end
 
     it 'should return all rolls alphabetically' do
       expect(@output).to include "barfoo"
+    end
+  end
+
+  describe '#version' do
+    it 'should return a version' do
+      expect(@cli.version).to eq "#{Yuyi::NAME} #{Yuyi::VERSION}"
     end
   end
 end

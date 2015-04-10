@@ -129,7 +129,7 @@ private
           # save a local copy of the remote menu
           if $?.success?
             # if a menu was downloaded, save the response to a local file
-            local_file_name = Yuyi::DEFAULT_MENU.clone << '_remote'
+            local_file_name = File.join Dir.pwd, "#{Yuyi::DEFAULT_FILE_NAME}_remote"
 
             File.open local_file_name, 'w+' do |f|
               f.write response
@@ -148,14 +148,27 @@ private
       end
     end
 
+    # search the pwd or the home directory for a menufile
+    #
+    def set_menu_file_path
+      project_menu_file = File.expand_path File.join(Dir.pwd, Yuyi::DEFAULT_FILE_NAME)
+      home_menu_file = File.expand_path File.join('~', Yuyi::DEFAULT_FILE_NAME)
+
+      @menu_path = if File.exists? project_menu_file
+        project_menu_file
+      elsif File.exists? home_menu_file
+        home_menu_file
+      end
+    end
+
     # prompt the user to enter a path to menu file
     # keep prompting until path is valid
     #
     def get_menu_path
       until @yaml
         Yuyi.say 'Navigate to a menu file...', :type => :success
-        Yuyi.ask "...or just press enter to load `#{Yuyi::DEFAULT_MENU}`", :readline => true do |user_path|
-          menu_path = user_path.empty? ? Yuyi::DEFAULT_MENU : user_path
+        Yuyi.ask "...or just press ENTER to load `#{set_menu_file_path}`", :readline => true do |user_path|
+          menu_path = user_path.empty? ? set_menu_file_path : user_path
           load_from_file menu_path
         end
       end

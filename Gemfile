@@ -1,6 +1,6 @@
 source 'https://rubygems.org'
 
-gem 'activesupport', '~> 4.1.0'
+gem 'activesupport', '~> 4.1'
 gem 'bundler', '~> 1.7'
 gem 'cli_miami', '~> 0.0'
 gem 'ruby-progressbar'

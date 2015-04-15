@@ -1,13 +1,4 @@
 namespace :yuyi do
-  desc 'Watch Yuyi for changes with guard'
-  task(:watch) do
-    require 'guard'
-    Guard.start
-    while Guard.running do
-      sleep 0.5
-    end
-  end
-
   namespace :test do
     require 'rspec/core/rake_task'
 
@@ -30,9 +21,4 @@ namespace :yuyi do
 
   desc 'Run the rspec tests for the Yuyi library'
   task :test => 'test:library'
-
 end
-
-desc 'Alias for yuyi:watch'
-task :yuyi => 'yuyi:watch'
-task :default => 'yuyi:watch'

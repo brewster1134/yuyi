@@ -1,29 +1,49 @@
-![Travis CI](https://travis-ci.org/brewster1134/Yuyi.svg?branch=master)
+[![gem version](https://badge.fury.io/rb/yuyi.svg)](https://rubygems.org/gems/yuyi)
+[![dependencies](https://gemnasium.com/brewster1134/yuyi.svg)](https://gemnasium.com/brewster1134/yuyi)
+[![docs](http://inch-ci.org/github/brewster1134/yuyi.svg?branch=master)](http://inch-ci.org/github/brewster1134/yuyi)
+[![build](https://travis-ci.org/brewster1134/yuyi.svg?branch=master)](https://travis-ci.org/brewster1134/yuyi)
+[![coverage](https://coveralls.io/repos/brewster1134/yuyi/badge.svg?branch=master)](https://coveralls.io/r/brewster1134/yuyi?branch=master)
+[![code climate](https://codeclimate.com/github/brewster1134/yuyi/badges/gpa.svg)](https://codeclimate.com/github/brewster1134/yuyi)
 
-# Yuyi
+[![omniref](https://www.omniref.com/github/brewster1134/yuyi.png)](https://www.omniref.com/github/brewster1134/yuyi)
+
+# YUYI
 Custom automation for installing/uninstalling/upgrading your local machine environment
 
-###### Support
-* Mac OS X
+---
+#### Support
+* OS X 10.9 (Mavericks)
+* OS X 10.10 (Yosemite)
 
-###### Dependencies
-Nothing! Well thats not entirely true... the dependencies are already available by default on OS X
-* Ruby >= 1.8.7
-* Bash >= 3.2
+The only dependencies are already available by default on OS X
 
-#### Quick Usage
-* Create a `Yuyifile` file in your home folder _(see below for examples)_
+* Ruby
+* Bash
 
-If you are running yuyi on a brand new machine, you will need to run sudo to install Yuyi to the system installed ruby
+---
+#### Installation
 
-* `sudo gem install yuyi`
+_Fresh install of OS X?  Never installed ruby before?_
+You will need to install yuyi with sudo. __You can have yuyi install an updated version of ruby :)__
 
-Other you can just install it normally...
+```shell
+sudo gem install yuyi
+```
 
-* `gem install yuyi`
+_Have ruby installed with `rbenv`, `rvm`, or via other means?_
+You can just install yuyi normally
 
-#### Example Menu
+```shell
+gem install yuyi
+```
 
+---
+#### Menu
+To create a yuyi menu files, run `yuyi init`. It will walk you through adding yuyi roll sources and rolls.
+
+A yuyi menu consists of sources and rolls.  `Rolls` refer to individual things to install.  You can list them in any order, and Yuyi will make determine their dependencies and sure they are installed in the right order.
+
+###### Example Menu
 ```yaml
 sources:
   local: ~/Documents/Rolls
@@ -34,22 +54,30 @@ rolls:
     versions: ['2.0.0-p353']
 ```
 
-Make sure to include a colon (:) at the end of each roll name.
+_Make sure to include a colon (:) at the end of each roll name._
 
 If a roll accepts arguments, indent the key/value pairs below the roll name.  You will be prompted with roll options when Yuyi runs, and the opportunity to change them before anything is installed.
 
-**Then just run `yuyi`**
+#### Running Yuyi
+_Just run `yuyi`!_
 
+```shell
+yuyi
+```
 ### Development
-Use yuyi to install development dependencies
+You can use yuyi to install it's own development dependencies __(so meta)__
 
-`yuyi https://raw.githubusercontent.com/brewster1134/Yuyi/master/Yuyifile`
-`bundle install`
+```shell
+git clone git@github.com:brewster1134/yuyi.git
+cd yuyi
+yuyi -m Yuyifile
+bundle install
+```
 
-##### Running Tests
-```sh
+#### Running Tests
+```shell
 // run guard to watch the source files and automatically run tests when you make changes
-bundle exec rake yuyi
+bundle exec guard
 
 // run rspec tests on the yuyi library
 bundle exec rake yuyi:test
@@ -57,23 +85,24 @@ bundle exec rake yuyi:test
 // run rspec tests on the rolls specified in a given menu
 bundle exec rake yuyi:test:rolls
 
-// run rspec tests on the library and the rolld
+// run rspec tests on the library and the rolls
 bundle exec rake yuyi:test:all
 ```
 
-##### Writing Rolls
-###### _required_
+---
+#### Writing Rolls
+#### _required_
 * `< Yuyu::Roll`  The roll class needs to inherit from Yuyi::Roll
 * `install`       A block to install a roll
 * `uninstall`     A block to uninstall a roll
 * `upgrade`        A block to upgrade a roll
 * `installed?`    A block to tests if your roll is already installed or not
 
-###### _optional_
+#### _optional_
 * `dependencies`  Declare dependencies (supports multiple arguments) that your roll depends on
 * `options`       A hash of options (and a nested hash of option meta data _* see example below *_)
 
-###### _available methods_
+#### _available methods_
 * `title`             Returns a string of the roll title.
 * `options`           Returns the roll options.
 * `run`               This will run a system command.
@@ -124,3 +153,5 @@ end
 ```
 
 [.](http://www.comedycentral.com/video-clips/3myds9/upright-citizens-brigade-sushi-chef)
+
+[![WTFPL](http://www.wtfpl.net/wp-content/uploads/2012/12/wtfpl-badge-4.png)](http://www.wtfpl.net)

@@ -1,25 +1,22 @@
-require 'rubygems' # DEPRECATION: required for ruby 1.8.7
+#
+# Yuyi Core
+# monkey patches, opening ruby classes, vendored library configurations, etc.
+#
 require 'tsort'
-require 'yaml'
 
 class Array
-  def to_yaml_style
-    :inline
-  end
+  def to_yaml_style; :inline; end
 end
 
 class Hash
   include TSort
   alias tsort_each_node each_key
-  def tsort_each_child(node, &block)
+  def tsort_each_child node, &block
     fetch(node).each(&block)
   end
 
   # https://github.com/rails/rails/blob/c48a0cac626b4e32d7abfa9f4f1fae16568157d9/activesupport/lib/active_support/core_ext/hash/keys.rb
-  #
-  # Destructively convert all keys to symbols, as long as they respond
-  # to +to_sym+. This includes the keys from the root hash and from all
-  # nested hashes.
+  # Destructively & recursively convert all keys to symbols.
   #
   # DEPRECATION
   # required for: ruby 1.8.7

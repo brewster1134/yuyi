@@ -1,24 +1,6 @@
 module Yuyi::Ui
   @@required = {}
 
-  def header
-    line_length = 50
-    say
-    say '-' * line_length, :color => :light_blue
-    say
-    say '____    ____  __    __  ____    ____  __  ',  :justify => :center, :padding => line_length, :color => :red
-    say '\   \  /   / |  |  |  | \   \  /   / |  | ',  :justify => :center, :padding => line_length, :color => :light_white
-    say ' \   \/   /  |  |  |  |  \   \/   /  |  | ',  :justify => :center, :padding => line_length, :color => :light_blue
-    say '  \_    _/   |  |  |  |   \_    _/   |  | ',  :justify => :center, :padding => line_length, :color => :red
-    say '    |  |     |  `--\'  |     |  |     |  | ', :justify => :center, :padding => line_length, :color => :light_white
-    say '    |__|      \______/      |__|     |__| ',  :justify => :center, :padding => line_length, :color => :light_blue
-    say
-    say "VERSION #{Yuyi::VERSION}", :justify => :center, :padding => line_length
-    say
-    say '-' * line_length, :color => :light_blue
-    say
-  end
-
   # If any rolls on the menu have options, confirm the options before continuing
   #
   def confirm_options

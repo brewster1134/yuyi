@@ -1,11 +1,9 @@
 source 'https://rubygems.org'
 
-gem 'colorize'
-
 gem 'bundler', '~> 1.7'
 gem 'cli_miami', '~> 0.0'
 gem 'ruby-progressbar'
-gem 'sourcerer_', '~> 0.0', :require => 'sourcerer'
+gem 'sourcerer_', '~> 1.0', :require => 'sourcerer'
 gem 'thor', '~> 0.19'
 
 group :test do

@@ -90,9 +90,9 @@ RSpec.configure do |config|
     # make sure we stay in the root dir
     FileUtils.chdir root
 
-    allow(ProgressBar).to receive(:create)
-    allow_any_instance_of(Yuyi::Menu).to receive_message_chain('progressbar.reset')
-    allow_any_instance_of(Yuyi::Menu).to receive_message_chain('progressbar.increment')
+    # allow(ProgressBar).to receive(:create)
+    # allow_any_instance_of(Yuyi::Menu).to receive_message_chain('progressbar.reset')
+    # allow_any_instance_of(Yuyi::Menu).to receive_message_chain('progressbar.increment')
 
     allow(S).to receive(:ay)#.and_call_original
     allow(A).to receive(:sk).and_call_original

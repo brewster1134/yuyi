@@ -5,3 +5,10 @@ rvm:
   - 1.8.7
   - 1.9.3
   - 2.0.0
+branches:
+  only:
+    - master
+    - '2.0'
+addons:
+  code_climate:
+    repo_token: 0a9a86b846799a8af33e76d6c73598b6113fe163027ffb52f766e6488c606284

@@ -41,14 +41,14 @@ class Yuyi
   # Starts Yuyi
   # @param menu_path [String] a path to a valid yuyi menu yaml-formatted file
   #
-  def self.start menu_path
-    Yuyi::Menu.new menu_path
+  def self.start menu_paths
+    Yuyi::Menu.new *menu_paths
 
-    # confirm with user
-    confirm_options
-    authenticate
+    # # confirm with user
+    # confirm_options
+    # authenticate
 
-    # order
-    Yuyi::Menu.order
+    # # order
+    # Yuyi::Menu.order
   end
 end

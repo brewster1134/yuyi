@@ -2,93 +2,87 @@ require 'ostruct'
 
 describe Yuyi::Menu do
   before do
-    @menu_path = root('spec', 'fixtures', 'Yuyifile')
+    @menu_paths = root('spec', 'fixtures', 'Yuyifile')
 
     # stub the methods intialize calls so we can test them independently
-    allow_any_instance_of(Yuyi::Menu).to receive(:get_menu_object_from_path)
+    allow_any_instance_of(Yuyi::Menu).to receive(:build_menu_object)
 
     # initialize an empty menu object
-    @menu = Yuyi::Menu.new @menu_path
+    @menu = Yuyi::Menu.new *@menu_paths
 
     # test the stubbed methods to make sure they are called in order
-    expect(@menu).to have_received(:get_menu_object_from_path).with(@menu_path).ordered
+    expect(@menu).to have_received(:build_menu_object).with([@menu_paths]).ordered
 
     # unstub the methods
-    allow_any_instance_of(Yuyi::Menu).to receive(:get_menu_object_from_path).and_call_original
+    allow_any_instance_of(Yuyi::Menu).to receive(:build_menu_object).and_call_original
   end
 
-  describe '#get_menu_object_from_path' do
+  describe '#build_menu_object' do
     before do
-      # make sure a cli instance is set globally so we can stub it
-      Yuyi.cli ||= Yuyi::Cli.new
-
-      @menu.get_menu_object_from_path @menu_path
+      allow(@menu).to receive(:validate_menu_path).and_return({ :foo => 'foo', :bar => 'foo' }, { :bar => 'bar' }, { :baz => 'baz' })
+      @return = @menu.build_menu_object 'path/one', 'path/two'
     end
 
-    after do
-      allow(@menu).to receive(:validate_menu_path).and_call_original
-      allow(Yuyi.cli).to receive(:init).and_call_original
+    it 'should validate all paths' do
+      expect(@menu).to have_received(:validate_menu_path).with(File.join('~', Yuyi::DEFAULT_FILE_NAME)).ordered
+      expect(@menu).to have_received(:validate_menu_path).with(File.join(Dir.pwd, Yuyi::DEFAULT_FILE_NAME)).ordered
+      expect(@menu).to have_received(:validate_menu_path).with('path/one').ordered
+      expect(@menu).to have_received(:validate_menu_path).with('path/two').ordered
     end
 
-    context 'when passed path is valid' do
-      before do
-        allow(@menu).to receive(:validate_menu_path).and_return({
-          sources: {},
-          rolls: {}
-        })
-
-        @menu.get_menu_object_from_path 'valid/path'
-      end
-
-      it 'should only validate the valid path' do
-        expect(@menu).to have_received(:validate_menu_path).once.with('valid/path')
-      end
-
-      it 'should set the yaml var to the valid menu file' do
-        expect(@menu.yaml[:sources]).to be_a Hash
-        expect(@menu.yaml[:rolls]).to be_a Hash
-      end
-    end
-
-    context 'when all paths are invalid' do
-      before do
-        allow(@menu).to receive(:validate_menu_path).and_return false
-        allow(Yuyi.cli).to receive(:init)
-
-        @menu.get_menu_object_from_path 'invalid/path'
-      end
-
-      it 'should validate all possible paths' do
-        expect(@menu).to have_received(:validate_menu_path).with('invalid/path')
-        expect(@menu).to have_received(:validate_menu_path).with(File.join(Dir.pwd, Yuyi::DEFAULT_FILE_NAME))
-        expect(@menu).to have_received(:validate_menu_path).with(File.join('~', Yuyi::DEFAULT_FILE_NAME))
-      end
-
-      it 'should run init' do
-        expect(Yuyi.cli).to have_received(:init)
-      end
+    it 'should merge menu files' do
+      expect(@return).to eq({ :foo => 'foo', :bar => 'bar', :baz => 'baz' })
     end
   end
 
   describe '#validate_menu_path' do
-    it 'should return false if the path is not a file' do
-      expect(@menu.validate_menu_path('spec')).to eq false
+    context 'when path is invalid' do
+      it 'should return an empty object if the path is not a file' do
+        expect(@menu.validate_menu_path(root('spec'))).to eq({})
+      end
+
+      it 'should return an empty object if the menu file isnt valid yaml' do
+        expect(@menu.validate_menu_path(root('spec', 'spec_helper.rb'))).to eq({})
+      end
+
+      it 'should return an empty object if the menu file doesnt contain sources or rolls' do
+        expect(@menu.validate_menu_path(root('spec', 'fixtures', 'Yuyifile_invalid'))).to eq({})
+      end
+
+      it 'should attempt to download a remote menu' do
+        class SpecSourcerer
+          def self.files name
+            [name]
+          end
+        end
+
+        allow(Sourcerer).to receive(:new).and_return(SpecSourcerer)
+        allow(SpecSourcerer).to receive(:files).and_call_original
+
+        expect(Sourcerer).to receive(:new).with('remote/source', { :subdirectory => 'sub/directory/filename' })
+        expect(SpecSourcerer).to receive(:files).with('filename')
+
+        @menu.validate_menu_path('remote/source::sub/directory/filename')
+      end
     end
 
-    it 'should return false if the menu file doesnt contain the required keys' do
-      expect(@menu.validate_menu_path(root('spec', 'fixtures', 'Yuyifile_invalid'))).to eq false
-    end
+    context 'when path is valid' do
+      before do
+        @return = @menu.validate_menu_path(root('spec', 'fixtures', 'Yuyifile'))
+      end
 
-    it 'should return the object if the menu file is valid' do
-      menu = @menu.validate_menu_path(root('spec', 'fixtures', 'Yuyifile'))
-      expect(menu[:sources]).not_to be_empty
-      expect(menu[:rolls]).not_to be_empty
-    end
+      it 'should return the object if the menu file is valid' do
+        expect(@return[:sources]).not_to be_empty
+        expect(@return[:rolls]).not_to be_empty
+      end
 
-    it 'should attempt to download a remote menu' do
-      allow(Sourcerer).to receive(:new)
-      expect(Sourcerer).to receive(:new)
-      expect{@menu.validate_menu_path('remote/file')}.to raise_error
+      it 'should add the path' do
+        expect(@menu.paths).to include root('spec', 'fixtures', 'Yuyifile')
+      end
+
+      it 'should return the yaml' do
+        expect(@return).to be_a Hash
+      end
     end
   end
 end

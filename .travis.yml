@@ -10,4 +10,4 @@ branches:
     - '2.0'
 addons:
   code_climate:
-    repo_token: 0a9a86b846799a8af33e76d6c73598b6113fe163027ffb52f766e6488c606284
+    repo_token: 0a9a86b846799a8af33e76d6c73598b6113fe163027ffb52f766e6488c606284 bundle exec rake

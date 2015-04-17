@@ -1,19 +1,33 @@
 # require 'readline'
 # require 'ruby-progressbar'
+require 'active_support/core_ext/hash/deep_merge'
+require 'active_support/core_ext/hash/keys'
 require 'sourcerer'
 require 'yaml'
 
 class Yuyi::Menu
-  attr_accessor :yaml
+  attr_accessor :paths, :yaml
 
   # Create a new menu that stores the raw yaml file
   # along with sources, rolls, and roll model instances
   #
-  def initialize path
-    @rolls = {}
-    @sources = []
+  def initialize *paths
+    # attempt to load a menu object from a path
+    if build_menu_object paths
+      # menu found and loaded
+    else
+      # no valid menu found
+      # if path
+      #   S.ay "`#{path}` was not found, or is not a valid Yuyi menu. Check the README for more info", :error
+      # else
+      #   S.ay ''
+      # end
+    end
 
-    get_menu_object_from_path path
+
+    # @rolls = {}
+    # @sources = []
+
     # # load a yaml file
     # load_from_file path
 
@@ -26,47 +40,69 @@ class Yuyi::Menu
     # Yuyi.menu = self
   end
 
-  # searches for, and validates, a possible menu file
-  # @param path [String] a path to a potentially valid menu
-  # @return [String] a valid menu path
+  # searches for, and validates, a possible menu files
+  # @param path [Array] one or multiple paths to a possible menu files
+  # @return [Hash] a hash with all the available menu files merged together
   #
-  def get_menu_object_from_path path = ''
-    user_path = path
-    pwd_path  = File.join(Dir.pwd, Yuyi::DEFAULT_FILE_NAME)
-    home_path = File.join('~', Yuyi::DEFAULT_FILE_NAME)
+  def build_menu_object user_paths
+    @yaml = {}
 
-    # return the first valid menu object
-    @yaml =
-      validate_menu_path(user_path) ||
-      validate_menu_path(pwd_path)  ||
-      validate_menu_path(home_path) ||
-      Yuyi.cli.init
+    home_path = File.join('~', Yuyi::DEFAULT_FILE_NAME)
+    pwd_path  = File.join(Dir.pwd, Yuyi::DEFAULT_FILE_NAME)
+
+    # check and load the home and pwd menus first
+    @yaml.deep_merge! validate_menu_path(home_path)
+    @yaml.deep_merge! validate_menu_path(pwd_path)
+
+    # check and load the user defined menus
+    user_paths.each do |user_path|
+      @yaml.deep_merge! validate_menu_path(user_path)
+    end
+
+    return @yaml
   end
 
-  # validates a menu path is a valid yuyi menu file
+  # validates a single path to be a valid yuyi menu file
   # @param path [String] a potential menu file path
   # @return [Hash] yaml file converted to valid ruby menu hash
   #
-  def validate_menu_path path
+  def validate_menu_path path = ''
+    @paths = []
+
     # check that menu file exists locally
     path = if File.exists? File.expand_path path
-      path
+      File.expand_path path
 
     # attempt to get remote file
     elsif
       path_array = path.split('::')
-      file_name = File.basename(path_array[0]) rescue Yuyi::DEFAULT_FILE_NAME
+      file_name = File.basename(path_array[1] || path_array[0]) rescue Yuyi::DEFAULT_FILE_NAME
       source = Sourcerer.new path_array[0], :subdirectory => path_array[1]
       source.files(file_name).first
     end
 
     # check that the path is a file
-    return false unless File.file? path
+    unless File.file? path
+      S.ay "`#{path}` is not a file and cannot be loaded", :error
+      return {}
+    end
 
-    # check that menu contains required keys
-    yaml = YAML.load(File.read(path)).deep_symbolize_keys! rescue {}
-    return false unless yaml[:sources].is_a?(Hash) && !yaml[:sources].empty?
-    return false unless yaml[:rolls].is_a?(Hash) && !yaml[:rolls].empty?
+    # check that menu is a valid yaml
+    yaml = begin
+      YAML.load(File.read(path)).deep_symbolize_keys
+    rescue
+      S.ay "`#{path}` is not a valid yaml file", :error
+      return {}
+    end
+
+    # menu should have at least sources or rolls defined (or both)
+    unless (yaml[:sources].is_a?(Hash) && !yaml[:sources].empty?) || (yaml[:rolls].is_a?(Hash) && !yaml[:rolls].empty?)
+      S.ay "`#{path}` must contains either/both `sources` or `rolls`", :error
+      return {}
+    end
+
+    # add valid path
+    @paths << path
 
     # return yaml object
     yaml

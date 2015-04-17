@@ -1,7 +1,7 @@
 require 'cli_miami'
 require 'thor'
 
-# CliMiami.set_preset :error, :color => :red
+CliMiami.set_preset :error, :color => :red
 # CliMiami.set_preset :fine_print, :color => :cyan
 CliMiami.set_preset :header, :color => :green
 # CliMiami.set_preset :highlight_key, :indent => 2, :newline => false, :padding => 30, :justify => :rjust
@@ -43,7 +43,7 @@ class Yuyi::Cli < Thor
   desc 'start', 'Run Yuyi'
   option :verbose, :default => false, :aliases => '-v', :type => :boolean, :desc => 'Run in verbose mode'
   option :upgrade, :default => false, :aliases => '-u', :type => :boolean, :desc => 'Check for upgrades for rolls on the menu that are already installed'
-  option :menu_path, :aliases => '-m', :desc => 'Path to a yuyi menu file'
+  option :menu_paths, :type => :array, :aliases => '-m', :desc => 'Path to a yuyi menu file'
   def start
     display_header
 
@@ -55,7 +55,7 @@ class Yuyi::Cli < Thor
     Yuyi.cli = self
 
     # run Yuyi
-    Yuyi.start options[:menu_path]
+    Yuyi.start options[:menu_paths]
   end
 
   default_task :start
@@ -64,18 +64,18 @@ class Yuyi::Cli < Thor
     def display_header
       line_length = 50
       S.ay
-      S.ay '-' * line_length, :color => :light_blue
+      S.ay '-' * line_length, :color => :cyan
       S.ay
       S.ay '____    ____  __    __  ____    ____  __  ',  :justify => :center, :padding => line_length, :color => :red
-      S.ay '\   \  /   / |  |  |  | \   \  /   / |  | ',  :justify => :center, :padding => line_length, :color => :light_white
-      S.ay ' \   \/   /  |  |  |  |  \   \/   /  |  | ',  :justify => :center, :padding => line_length, :color => :light_blue
+      S.ay '\   \  /   / |  |  |  | \   \  /   / |  | ',  :justify => :center, :padding => line_length, :color => :white
+      S.ay ' \   \/   /  |  |  |  |  \   \/   /  |  | ',  :justify => :center, :padding => line_length, :color => :cyan
       S.ay '  \_    _/   |  |  |  |   \_    _/   |  | ',  :justify => :center, :padding => line_length, :color => :red
-      S.ay '    |  |     |  `--\'  |     |  |     |  | ', :justify => :center, :padding => line_length, :color => :light_white
-      S.ay '    |__|      \______/      |__|     |__| ',  :justify => :center, :padding => line_length, :color => :light_blue
+      S.ay '    |  |     |  `--\'  |     |  |     |  | ', :justify => :center, :padding => line_length, :color => :white
+      S.ay '    |__|      \______/      |__|     |__| ',  :justify => :center, :padding => line_length, :color => :cyan
       S.ay
       S.ay "VERSION #{Yuyi::VERSION}", :justify => :center, :padding => line_length
       S.ay
-      S.ay '-' * line_length, :color => :light_blue
+      S.ay '-' * line_length, :color => :cyan
       S.ay
     end
   end

@@ -1,29 +1,22 @@
-require 'cli_miami'
 require 'thor'
-
-CliMiami.set_preset :error, :color => :red
-# CliMiami.set_preset :fine_print, :color => :cyan
-CliMiami.set_preset :header, :color => :green
-# CliMiami.set_preset :highlight_key, :indent => 2, :newline => false, :padding => 30, :justify => :rjust
-# CliMiami.set_preset :highlight_value, :color => :blue, :style => :bright, :indent => 1
-# CliMiami.set_preset :instruction, :color => :yellow, :indent => 2
-# CliMiami.set_preset :list_item, :indent => 2
-# CliMiami.set_preset :prompt, :color => :yellow, :style => :bold
 
 class Yuyi::Cli < Thor
   desc 'version', 'Show the installed version of Yuyi'
   def version
-    S.ay Yuyi::VERSION
+    display_header
   end
 
   desc 'init', 'Create a Yuyi menu file in the current directory'
   def init
+    display_header
   end
 
   desc 'list', 'Show all rolls available based on the sources defined in your menu.'
-  option :menu, :aliases => '-m', :desc => 'Path to your menu file'
+  option :menu_paths, :type => :array, :aliases => '-m', :desc => 'Path to yuyi menu files'
   def list
-    Yuyi::Menu.new options[:menu]
+    display_header
+
+    Yuyi::Menu.new options[:menu_paths]
 
     # Collect all rolls from all sources
     rolls = []
@@ -42,41 +35,35 @@ class Yuyi::Cli < Thor
 
   desc 'start', 'Run Yuyi'
   option :verbose, :default => false, :aliases => '-v', :type => :boolean, :desc => 'Run in verbose mode'
-  option :upgrade, :default => false, :aliases => '-u', :type => :boolean, :desc => 'Check for upgrades for rolls on the menu that are already installed'
-  option :menu_paths, :type => :array, :aliases => '-m', :desc => 'Path to a yuyi menu file'
+  option :upgrade, :default => false, :aliases => '-u', :type => :boolean, :desc => 'Attempt to upgrade rolls that are already installed'
+  option :menu_paths, :type => :array, :aliases => '-m', :desc => 'Path to yuyi menu files'
   def start
     display_header
 
-    # set flags
-    Yuyi.set_verbose if options[:verbose]
-    Yuyi.set_upgrade if options[:upgrade]
-
-    # make cli instance available globally
-    Yuyi.cli = self
-
     # run Yuyi
-    Yuyi.start options[:menu_paths]
+    Yuyi.start options[:menu_paths], :verbose => options[:verbose], :upgrade => options[:upgrade]
   end
 
   default_task :start
 
   no_commands do
     def display_header
-      line_length = 50
+      line_length = 80
+      S.ay '                               /$$', :justify => :center, :padding => line_length, :color => :red
+      S.ay '                              |__/', :justify => :center, :padding => line_length, :color => :white
+      S.ay ' /$$   /$$ /$$   /$$ /$$   /$$ /$$', :justify => :center, :padding => line_length, :color => :cyan
+      S.ay '| $$  | $$| $$  | $$| $$  | $$| $$', :justify => :center, :padding => line_length, :color => :red
+      S.ay '| $$  | $$| $$  | $$| $$  | $$| $$', :justify => :center, :padding => line_length, :color => :white
+      S.ay '| $$  | $$| $$  | $$| $$  | $$| $$', :justify => :center, :padding => line_length, :color => :cyan
+      S.ay '|  $$$$$$$|  $$$$$$/|  $$$$$$$| $$', :justify => :center, :padding => line_length, :color => :red
+      S.ay ' \____  $$ \______/  \____  $$|__/', :justify => :center, :padding => line_length, :color => :white
+      S.ay ' /$$  | $$           /$$  | $$    ', :justify => :center, :padding => line_length, :color => :cyan
+      S.ay '|  $$$$$$/          |  $$$$$$/    ', :justify => :center, :padding => line_length, :color => :red
+      S.ay ' \______/            \______/     ', :justify => :center, :padding => line_length, :color => :white
       S.ay
-      S.ay '-' * line_length, :color => :cyan
-      S.ay
-      S.ay '____    ____  __    __  ____    ____  __  ',  :justify => :center, :padding => line_length, :color => :red
-      S.ay '\   \  /   / |  |  |  | \   \  /   / |  | ',  :justify => :center, :padding => line_length, :color => :white
-      S.ay ' \   \/   /  |  |  |  |  \   \/   /  |  | ',  :justify => :center, :padding => line_length, :color => :cyan
-      S.ay '  \_    _/   |  |  |  |   \_    _/   |  | ',  :justify => :center, :padding => line_length, :color => :red
-      S.ay '    |  |     |  `--\'  |     |  |     |  | ', :justify => :center, :padding => line_length, :color => :white
-      S.ay '    |__|      \______/      |__|     |__| ',  :justify => :center, :padding => line_length, :color => :cyan
-      S.ay
-      S.ay "VERSION #{Yuyi::VERSION}", :justify => :center, :padding => line_length
-      S.ay
-      S.ay '-' * line_length, :color => :cyan
-      S.ay
+      S.ay '=' * line_length, :color => :cyan
+      S.ay "VERSION #{Yuyi::VERSION}", :justify => :center, :padding => line_length, :color => :red
+      S.ay '=' * line_length, :color => :cyan
     end
   end
 end

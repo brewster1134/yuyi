@@ -11,7 +11,7 @@ class Yuyi::Menu
   # Create a new menu that stores the raw yaml file
   # along with sources, rolls, and roll model instances
   #
-  def initialize *paths
+  def initialize paths
     # attempt to load a menu object from a path
     if build_menu_object paths
       # menu found and loaded
